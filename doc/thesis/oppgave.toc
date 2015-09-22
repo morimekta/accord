@@ -1,0 +1,132 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}Introduction}{5}
+\contentsline {subsection}{\numberline {1.1}Problem Background}{5}
+\contentsline {subsection}{\numberline {1.2}Thesis Overview}{5}
+\contentsline {section}{\numberline {2}State of the Art}{6}
+\contentsline {subsection}{\numberline {2.1}Theoretical Background}{6}
+\contentsline {subsubsection}{\numberline {2.1.1}Replication Access}{6}
+\contentsline {paragraph}{Plaxton Scheme}{7}
+\contentsline {paragraph}{Replication with Plaxton Scheme}{7}
+\contentsline {subsubsection}{\numberline {2.1.2}Consistent Hashing}{7}
+\contentsline {subsubsection}{\numberline {2.1.3}Hypercube}{8}
+\contentsline {subsection}{\numberline {2.2}Distributed Hash Tables}{8}
+\contentsline {subsubsection}{\numberline {2.2.1}Terms}{9}
+\contentsline {paragraph}{Symbols}{10}
+\contentsline {subsection}{\numberline {2.3}Geometries}{10}
+\contentsline {subsubsection}{\numberline {2.3.1}Ring}{10}
+\contentsline {paragraph}{Skiplist routing}{11}
+\contentsline {paragraph}{de Brujin}{11}
+\contentsline {paragraph}{Small World}{11}
+\contentsline {subsubsection}{\numberline {2.3.2}Tree}{11}
+\contentsline {paragraph}{Supernodes}{12}
+\contentsline {paragraph}{XOR Metric}{12}
+\contentsline {subsubsection}{\numberline {2.3.3}Hyperspace}{12}
+\contentsline {subsubsection}{\numberline {2.3.4}Hybrid}{13}
+\contentsline {subsection}{\numberline {2.4}Distributed Lookup}{13}
+\contentsline {subsubsection}{\numberline {2.4.1}Iterative vs Recursive Lookup}{13}
+\contentsline {subsubsection}{\numberline {2.4.2}Timeout Calculation on Lookup Messages}{14}
+\contentsline {subsubsection}{\numberline {2.4.3}Proximity Neighbor Selection}{15}
+\contentsline {paragraph}{Constrained Gossiping}{15}
+\contentsline {paragraph}{PNS(k)}{15}
+\contentsline {paragraph}{Local Convergence}{15}
+\contentsline {subsubsection}{\numberline {2.4.4}Proximity Routing Selection}{16}
+\contentsline {subsection}{\numberline {2.5}Security}{16}
+\contentsline {subsubsection}{\numberline {2.5.1}Routing Attacks}{16}
+\contentsline {subsubsection}{\numberline {2.5.2}Incorrect Routing Updates}{16}
+\contentsline {subsubsection}{\numberline {2.5.3}Partitioning}{17}
+\contentsline {subsubsection}{\numberline {2.5.4}Data Storage}{17}
+\contentsline {subsection}{\numberline {2.6}Churn}{17}
+\contentsline {subsubsection}{\numberline {2.6.1}Measurements of Churn}{17}
+\contentsline {paragraph}{Half-Life}{18}
+\contentsline {paragraph}{Static Resilience}{18}
+\contentsline {subsubsection}{\numberline {2.6.2}Effects of Churn}{18}
+\contentsline {subsubsection}{\numberline {2.6.3}Availability}{19}
+\contentsline {paragraph}{Realities}{19}
+\contentsline {paragraph}{Hashgroups}{19}
+\contentsline {paragraph}{Sanding}{20}
+\contentsline {paragraph}{Successor List}{20}
+\contentsline {paragraph}{Plaxton Replication}{20}
+\contentsline {subsubsection}{\numberline {2.6.4}Factors and Measures}{20}
+\contentsline {paragraph}{Update Scheduling}{20}
+\contentsline {paragraph}{Successive Neighbors}{20}
+\contentsline {paragraph}{Gossiping}{21}
+\contentsline {subsubsection}{\numberline {2.6.5}Consistency}{21}
+\contentsline {paragraph}{Definitions}{21}
+\contentsline {section}{\numberline {3}Problem Description}{23}
+\contentsline {subsection}{\numberline {3.1}Lookup Consistency in a DHT}{23}
+\contentsline {subsubsection}{\numberline {3.1.1}Consistency and Reliability}{23}
+\contentsline {subsubsection}{\numberline {3.1.2}Defining {\flqq {}Consistent Lookup\frqq {}}}{23}
+\contentsline {subsubsection}{\numberline {3.1.3}Defining Ownership}{24}
+\contentsline {subsection}{\numberline {3.2}Approaches}{25}
+\contentsline {subsubsection}{\numberline {3.2.1}Algorithmic Prevention}{25}
+\contentsline {subsubsection}{\numberline {3.2.2}Statistical Prevention}{25}
+\contentsline {subsubsection}{\numberline {3.2.3}Structural Prevention}{25}
+\contentsline {paragraph}{Thesis Approach}{26}
+\contentsline {subsection}{\numberline {3.3}Thesis Goals}{26}
+\contentsline {subsubsection}{\numberline {3.3.1}Analysis Overview}{26}
+\contentsline {subsubsection}{\numberline {3.3.2}Project Overview}{26}
+\contentsline {subsubsection}{\numberline {3.3.3}Discussion Overview}{26}
+\contentsline {section}{\numberline {4}Analysis}{27}
+\contentsline {subsection}{\numberline {4.1}Failure, Faults and Errors}{27}
+\contentsline {subsubsection}{\numberline {4.1.1}Consistent Failures}{27}
+\contentsline {subsubsection}{\numberline {4.1.2}Inconsistent Failures}{28}
+\contentsline {subsection}{\numberline {4.2}Communication Failures}{28}
+\contentsline {subsubsection}{\numberline {4.2.1}Single Link Failure}{28}
+\contentsline {paragraph}{Transient Link Failure}{29}
+\contentsline {paragraph}{Resilient Link Failure}{29}
+\contentsline {subsubsection}{\numberline {4.2.2}Network Partitioning}{29}
+\contentsline {subsection}{\numberline {4.3}Node Failure}{29}
+\contentsline {subsubsection}{\numberline {4.3.1}Node Crashes}{30}
+\contentsline {subsection}{\numberline {4.4}Membership Failures}{30}
+\contentsline {subsubsection}{\numberline {4.4.1}Simple Failures}{30}
+\contentsline {paragraph}{The Join Protocol}{30}
+\contentsline {paragraph}{The Leave Protocol}{30}
+\contentsline {paragraph}{Protocol Design}{31}
+\contentsline {subsubsection}{\numberline {4.4.2}Join-Leave Scenarios}{31}
+\contentsline {paragraph}{Failure Scenario \emph {(A)}}{31}
+\contentsline {paragraph}{Failure Scenario \emph {(B)}}{32}
+\contentsline {section}{\numberline {5}Design of Accord}{34}
+\contentsline {subsection}{\numberline {5.1}Routing in Accord}{34}
+\contentsline {subsubsection}{\numberline {5.1.1}Indexing}{35}
+\contentsline {paragraph}{Comparing Indices}{35}
+\contentsline {subparagraph}{Index Arithmetics}{35}
+\contentsline {paragraph}{Distance in Accord}{35}
+\contentsline {paragraph}{Relative Ownership}{35}
+\contentsline {subsubsection}{\numberline {5.1.2}Routing Tables}{36}
+\contentsline {paragraph}{Successive Neighbors}{36}
+\contentsline {paragraph}{Routing Tables}{36}
+\contentsline {subsection}{\numberline {5.2}Lookup Service}{36}
+\contentsline {subsubsection}{\numberline {5.2.1}Routing Table Lookup}{36}
+\contentsline {subsubsection}{\numberline {5.2.2}Index Lookup}{37}
+\contentsline {paragraph}{Partial Result Modes}{37}
+\contentsline {paragraph}{Lookup Options}{37}
+\contentsline {subparagraph}{Iterative Restrictions}{37}
+\contentsline {subsubsection}{\numberline {5.2.3}Consistent Lookup}{38}
+\contentsline {subsection}{\numberline {5.3}Membership Management}{38}
+\contentsline {subsubsection}{\numberline {5.3.1}Neighborhood Responsibility}{38}
+\contentsline {subsubsection}{\numberline {5.3.2}Join Protocol}{39}
+\contentsline {paragraph}{The Connector-Predecessor {\flqq {}join\frqq {}} Protocol}{40}
+\contentsline {paragraph}{The Predecessor-Successor {\flqq {}joinpred\frqq {}} Protocol}{40}
+\contentsline {subsubsection}{\numberline {5.3.3}Leave Protocol}{40}
+\contentsline {subsubsection}{\numberline {5.3.4}I-Am-Alive Protocol}{43}
+\contentsline {subsubsection}{\numberline {5.3.5}Stabilization}{44}
+\contentsline {subsection}{\numberline {5.4}System Design}{44}
+\contentsline {section}{\numberline {6}Discussions and Conclusions}{46}
+\contentsline {subsection}{\numberline {6.1}Comparison and Measures}{46}
+\contentsline {subsubsection}{\numberline {6.1.1}Chord}{46}
+\contentsline {paragraph}{Validity}{46}
+\contentsline {paragraph}{Predecessor Resolving Join Protocol}{47}
+\contentsline {paragraph}{Membership}{48}
+\contentsline {paragraph}{Locking Membership Management}{48}
+\contentsline {paragraph}{Lookup Protocol in Chord}{48}
+\contentsline {paragraph}{Leaving Problems}{48}
+\contentsline {subsubsection}{\numberline {6.1.2}Other Ring geometry DHTs}{49}
+\contentsline {subsubsection}{\numberline {6.1.3}Non-ring DHTs}{49}
+\contentsline {subsection}{\numberline {6.2}Other Observations made in the Thesis}{49}
+\contentsline {subsubsection}{\numberline {6.2.1}Dynamic Routing Table Preferences}{49}
+\contentsline {subsubsection}{\numberline {6.2.2}Iteration Restricting Arguments in Lookup/Routing}{50}
+\contentsline {subsection}{\numberline {6.3}Conclusion}{50}
+\contentsline {subsection}{\numberline {6.4}Further Works}{50}
+\contentsline {paragraph}{Dynamic Table Settings}{51}
+\contentsline {section}{\numberline {A}Project Overview}{52}
+\contentsline {section}{\numberline {B}Enclosed CD--ROM Overview}{54}

@@ -1,0 +1,111 @@
+%%\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,11pt]{article}
+\usepackage[english]{babel}
+\usepackage{epsfig}
+\usepackage{wrapfig}
+\usepackage{a4wide}
+\usepackage{subfigure}
+%\usepackage{listings} % Only used in "Code Files Appendix"
+\usepackage{amssymb}
+
+\title{Consistent lookup during Churn\\ in Distributed Hash Tables}
+\author{Stein Eldar Johnsen}
+
+\begin{document}
+
+\newcommand{\qmark}[1]%
+  {{\flqq{}#1\frqq{}}}
+\newcommand{\qstring}[1]%
+  {{\small\tt"{#1}"}}
+\newcommand{\miniquote}[1]%
+  {{\flushright\em\small{#1}}}
+\renewcommand{\descriptionlabel}[1]%
+  {\hspace{\labelsep}\sf{#1}}
+
+\newbox\subfigbox \makeatletter
+\newenvironment{subfloat}
+{\def\caption##1{\gdef\subcapsave{\relax##1}}%
+ \let\subcapsave\@empty \setbox\subfigbox\hbox
+ \bgroup} {\egroup \subfigure[\subcapsave]{\box\subfigbox}} \makeatother
+
+%% BEGIN "DOCUMENT"
+
+\maketitle
+
+\section*{Summary}
+
+This thesis was written by Stein Eldar Johnsen beginning 15th August 2003 and delivered by
+ 1st September 2005 with Svein Erik Bratsberg as mentor. The main topics are consistency and
+ distributed hash tables.
+
+One unsolved problem with distributed hash tables is consistent lookup. Various DHTs can
+ show \qmark{acceptable} consistency ratings, but no DHT can show \emph{no} lookup inconsistency during
+ churn. We chose to use a \emph{structural prevention} strategy to remove inconsistent
+ lookup on the basis that \emph{inconsistent lookups are a result of inconsistency in routing
+ tables}. We define consistent lookup as a lookup that returns a correct membership state
+ from some time \emph{during} lookup.
+
+Churn and especially \qmark{unplanned} membership changes may cause series of inconsistency
+ problems if not handled carefully. The combination of a planned membership change
+ (e.g. \emph{join}) and an unplanned membership change (e.g. node crash causing a node
+ to \emph{leave}) can cause problems needing careful repairing in
+ the systems routing tables. Table changes are necessary done in an order that guarantees
+ a consistent view over index ownership, and makes the possibility of consistent termination
+ at any point during execution.
+
+Other novel solutions include fail-fast disconnected-detection, locking membership
+ protocols and pre-join knowledge propagation. All these solutions are shown
+ to improve consistency through analysis, and are easily adapted for ring geometry DHTs.
+
+Accord was design to test many of the proposals made in the analysis. We built a
+ distributed hash table infrastructure (with no hash table functionality), that used
+ membership protocols based on the analysis results. The two main membership protocols were based
+ on a 2-level 2-phase commit protocol for \qmark{join}, and simple 2-phase commit with
+ distributed operations from a single coordinator for the \qmark{leave} protocol.
+
+The solutions proposed in this thesis are fit for all ring geometry DHTs, and some may
+ be adapted for tree geometry DHTs, and some for all DHTs. All of Chord, Bamboo andPastry are
+ good DHTs that can be used for testing the proposals, where all or most solutions are
+ shown to be possible. Future work includes more testing, simulations and analysis
+ of adaptations for different geometries.
+
+\emph{Keywords}; consistency, distributed hash table, membership, membership management,
+ membership protocol, failure analysis, membership failure, lookup, consistent lookup.
+
+\pagebreak
+
+\tableofcontents
+
+%\pagebreak
+
+\listoftables
+
+\listoffigures
+
+%\pagebreak
+
+\include{Introduction} % 1
+
+\include{StateOfTheArt} % 2
+
+\include{Problems} % 3
+
+\include{Analysis} % 4
+
+\include{Design} % 5
+
+\include{Conclution} % 6
+
+\appendix
+\include{Code}
+
+%\include{Documentation} % <-- eps, ps ... ??  skaff noe HTML -> LATEX (lenge leve Doxygen!) !!!
+% - The Classes.
+% - Documentation is appended externally (CD-ROM / Digitally)
+
+\pagebreak
+\bibliographystyle{unsrt}
+\bibliography{oppgave}
+
+
+\end{document}

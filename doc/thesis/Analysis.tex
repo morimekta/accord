@@ -1,0 +1,407 @@
+\section{Analysis}
+\label{sec:Analysis}
+
+\miniquote{
+   1. The condition or fact of not achieving the desired end or ends: \\
+                            the failure of an experiment. \ \ \ \ \ \ \\
+                 4. A cessation of proper functioning or performance: \\
+                                         a power failure. \ \ \ \ \ \ \\
+        5. Nonperformance of what is requested or expected; omission: \\
+                   failure to report a change of address. \ \ \ \ \ \ \\
+                                               Dictionary.com/Failure \\
+                                                                    \ \\
+}
+
+To have a complete overview of the problem of inconsistency, we must analyze the
+ various failure scenarios and deduce solutions that will solve the distinct failure
+ in a consistent way. The goal is to find a set of measures to each failure scenario
+ that will solve the problem altogether, although some of the problems may be either
+ too complex to study thoroughly or out of the scope of the thesis.
+
+Note that parts of the analysis was done after the initial design and implementation
+ of the system described in Section \ref{sec:Design}. A partial redesign and reimplementation
+ was done on basis of the analysis trying to address the problems raised here, but the
+ system described there does \emph{not} take into account all the failure scenarios
+ described in this Section.
+
+The fact that the analysis is partly based on some already taken design choices makes
+ this section and Section \ref{sec:Design} very intertwined. The connection between the
+ analysis and the existing systems like Chord and Bamboo is made in Section
+ \ref{sec:Discussion}.
+
+\subsection{Failure, Faults and Errors}
+\label{analysis:Failure}
+
+There are different definitions of \emph{things that can go wrong} with regard to
+ computer software. $\mathrm{\ddot{O}}$szu et al\cite{oszu-99-podds} talks of three distinctive
+ \emph{non-functional} states; \emph{failure}, \emph{faults} and \emph{errors}.
+ A failure is a \qmark{... deviation of a system from the behavior described in
+ the specification ...}.
+
+A failure waits latent in the system during \emph{run-time},
+ but does not affect its \emph{external} behavior until an \emph{error} occurs.
+ When a failure in the system is shown, it causes a \emph{fault}, which is
+ \qmark{... an internal state that may not obey its specification.} Such states
+ shows with \emph{erroneous behavior}, thus \emph{failures} causes \emph{faults}
+ in the system state,
+ which is shown as \emph{errors}. Totally this is viewed as a \emph{system failure}.
+
+\subsubsection{Consistent Failures}
+\label{analysis:ConsistentFailure}
+
+When lookups are executed, most are \qmark{consistent}, but some are
+ \qmark{inconsistent}. To make an 
+ analysis of the causes inconsistent lookup, we must identify the \emph{source failures} that causes
+ inconsistent routing tables; although not all failures will generate inconsistent
+ routing tables.
+
+\begin{enumerate}
+\item Lookup timeout is considered consistent, because it tells nothing of the state of
+   the DHT, only \emph{suggest} unavailability, and will therefor not give the impression of a non-existent (faulty) state.
+\item Lookups that returns the \emph{correct owner} of an index from any point in time during the
+   lookup. This is from the first lookup message is sent to the result arrives at the
+   requesting node. Any changes during this time period must be handled by the systems
+   using the DHT, as Distributed Hast Table Storage (DHash\cite{chord-homepage},
+   OpenHash\cite{bamboo-homepage} etcetera).
+\end{enumerate}
+
+\subsubsection{Inconsistent Failures}
+\label{analysis:InconsistentFailure}
+
+An \emph{inconsistent failure} is a failure that directly or indirectly causes lookups to
+ return wrong owner node for the index. This can be caused by a combination of some failures,
+ or by a combination of failures and routine changes in the routing tables. The most obvious
+ cause if inconsistency
+ is the existence if a link to a node that is no longer in the ring by knowledge of its
+ two immediate neighbors, and that this node acts as if still member of the ring.
+
+Another example is that; a node joins at the same time as one or more of its immediate
+ neighbors fails, and
+ the subsequent stabilizing algorithm does not handle the table updates in a way that leave
+ them consistent; or that that have states within the timespan of the membership algorithm
+ that may cause inconsistent lookup.
+
+\begin{figure}[htp] % fig:inconsistent-tables
+\begin{center}
+\subfigure[\qmark{Inconsistent} Tables]{\label{fig:inconsistent-table}
+\epsfig{file=figures/Inconsistent-Tables.eps,width=.42\linewidth}}
+\subfigure[\qmark{Consistent} but \qmark{incorrect} tables]{\label{fig:incorrect-table}
+\epsfig{file=figures/Consistent-Incorrect-Tables.eps,width=.42\linewidth}}
+\parbox{.9\linewidth}{\small
+ Showing a simple example of two table configurations that have a similar property,
+ missing neighbor links; but behaves differently during lookup. See Section
+ \ref{design:responsibility} for explanation of ownership and responsibility.
+}
+\end{center}
+\caption{Inconsistent vs. incorrect routing tables}
+\label{fig:incorrect-vs-inconsisten}
+\end{figure}
+
+The two tables in Figure \ref{fig:incorrect-vs-inconsisten} shows situations that may
+ give different lookup results when looking for indices between \emph{B} and
+ \emph{C} given the responsibility description from Section
+ \ref{design:responsibility}. The difference is seen if the lookup traces through
+ \emph{A} or \emph{C}. In \ref{fig:inconsistent-table} a lookup via \emph{A} will
+ believe that \emph{A} is the owner of the index, but a lookup through \emph{C} will
+ forward the request to \emph{B} which believes it is the owner. Both \emph{A}
+ and \emph{B} are thinking they own the indices between \emph{B} and \emph{C}.
+
+This situation is avoided in \ref{fig:incorrect-table}, as lookup through \emph{C} will
+ forward the request to \emph{A} which it views as the index owner, thus the lookups will
+ give the same result.
+
+\subsection{Communication Failures}
+\label{analysis:CommunicationFailure}
+
+In this thesis are communication issues mostly related to a single link that
+ fails in some way. We will discuss network partitioning and multiple link failure,
+ but not do a thorough analysis of its problems related to churn.
+ When we describe \qmark{network link failure}, we assume the isolated computer is
+ still working and able to detect the failure.
+
+\subsubsection{Single Link Failure}
+\label{analysis:SingleLinkFailure}
+
+When a single link fails, it can be transient; either for a single message
+ transfer, or a short sequence of message transfers; or resilient, that lasts for a
+ longer period of time.
+
+Transient failures may be a burst of messages overloading the network, causing buffer
+ overflows or collisions. Resilient failures may be the failure of a
+ networking device, a broken cable, lost power at a switch etcetera; these failures
+ cause total loss of connection, and may take minutes to hours or days to fix.
+ 
+\paragraph{Transient Link Failure}
+
+A single lost message is not considered to cause widespread inconsistency. But there is
+ needed for some \emph{message return timeout} when one can say that the lookup has failed. A failed
+ lookup is not considered inconsistent (see Section \ref{problem:DefiningConsistency}), and we
+ don't need to address the topic any further.
+
+The problem arises when the link failures lasts long enough to cause the system to consider
+ the node as unavailable or failed. It is important to note here that if a node can force
+ itself to stop operation (self-inflicted node failure)
+ if it detects a lasting link failure. This is called a \emph{fail-fast} node.
+
+To ensure that nodes rather disappears than breaks the system, nodes must be fail-fast.
+ In the time extent a node is unavailable to the rest of the network, it must make sure
+ it does not return believing it is a part of a ring where it is not. This may be solved
+ by fail-fast on network activity timeout. If a node senses its own disconnectedness
+ from the ring so long the ring may be starting to plan for its removal, the node must
+ completely shut down, and make sure it doesn't act \emph{connected} until it is proved
+ to be \emph{connected}.
+
+%
+% fail-fast timeout = neighbor activity timeout - security interval (caused by variance in timing of IAA and Leave-check timeout).
+%
+\begin{table}[htp] % fail-fast timeout
+\begin{center}
+\begin{tabular}{c}
+{\bf{\ttfamily{ fail-fast timeout $ = $ neighbor activity timeout $ - $ security interval }}}\\
+\end{tabular}
+\parbox{.9\linewidth}{ \small
+  As long as the \emph{security interval} is long enough to cover the worst case
+   scenario with regards to when the link failed, and when the neighbor responsible
+   of the local node's removal got the last sign of activity; the node should fail-fast
+   before its neighbors starts considering its removal (\qmark{forced leaving}) from
+   the ring.
+}
+\end{center}
+\caption{Fail-Fast Timeout}\label{tab:fail-fast-timeout}
+\end{table}
+
+\paragraph{Resilient Link Failure}
+
+Longer lasting link failures should be detected as any node or link failure for other
+ nodes in the ring, although the node never returns within a forseeable time frame.
+ Locally this should cause a
+ fail-fast event, stopping the node, and the other nodes should treat it as a node failure.
+
+\subsubsection{Network Partitioning}
+\label{analysis:NetworkPartitioning}
+
+Network partitioning, especially transient, may cause a lot of \qmark{inconsistency}
+ in routing tables and subsequently lookups. If the partition last shorter than the
+ \emph{node failure timeout}, then the nodes will \qmark{detect} each other again
+ before deciding wether to remove the nodes from the ring. Also if the partitioning
+ lasts longer than the \emph{node failure timeout} plus some time to consider the
+ matter, then the ring will split in two separate rings, each trying to stabilize
+ their own routing tables. This can cause massive inconsistency if the partitioning
+ ends before all links between the two partitions are not removed.
+
+With partitioning the ring may both fail and cause inconsistency. But this topic is
+ outside the scope of the thesis, and will not be discussed further.
+
+\subsection{Node Failure}
+\label{analysis:NodeFailure}
+
+Node failure is when something \emph{fails} locally at some node. With the
+ assumption of inconsistency being caused by inconsistent tables, we consideres a table
+ that causes inconsistency as a \emph{failed routing table}. There is also the possibility
+ that nodes simply crashes, and ceases to operate at some point.
+
+It is probably combinations of various failures that causes inconsistent routing tables as
+ described in Figure \ref{fig:incorrect-vs-inconsisten} on page \pageref{fig:incorrect-vs-inconsisten},
+ and such failures must be explored thoroughly. If we consider all nodes as
+ fail-fast to all \emph{non-trivial} failures, these failures can be viewed as a crashed
+ node or a single link failure, and doesn't need any further discussion.
+
+\subsubsection{Node Crashes}
+\label{analysis:NodeCrash}
+
+Nodes that totally goes down is not a problem for consistency. The problem here is just to
+ detect the failure as fast as possible, thus preventing lost lookup requests which in turn causes
+ undesired lookup latency. This also means that a node that can detect a local failure
+ to such an extent it may cause inconsistent lookup; it must fail totally, not partially.
+
+
+
+
+\subsection{Membership Failures}
+\label{analysis:MembershipFailure}
+
+In the case of transient link failures, there are some protocols that are dependent on
+ a common understanding of what the involved node \emph{know}. Common knowledge is impossible
+ to get without a common knowledge repository or database, which ruins the case for the DHT
+ in the first place.
+
+Now lets assume a set of non-described protocols that let nodes \qmark{join} or \qmark{leave}
+ the DHT. These protocols must follow a set of predefined rules that assume some common
+ knowledge of what the other nodes know \emph{relative to the steps in the protocol}. These steps
+ and knowledge assumptions depend on what failures happens, and in which place and in
+ which order in the case of multiple failures.
+
+\subsubsection{Simple Failures}
+
+Simple failures can be that a node disappears during the run of the protocol, and to analyze
+ this we must assume the extent of the knowledge demand before the protocol starts, during the
+ run of the protocol, and after the protocol is done.
+
+\paragraph{The Join Protocol}
+In case of the \qstring{join} protocol, each state in the protocol
+ must generate a new state of the routing tables that are considered \emph{consistent}. As shown
+ in Figure \ref{fig:incorrect-vs-inconsisten} on page \pageref{fig:incorrect-vs-inconsisten},
+ node links in the reverse ring must be added first in lookup ordering direction, then in the
+ reverse lookup direction. This will result in that if the new node crashes before the link is added,
+ then no lookups will ever end up there, and the moment the link is added, lookups will end there,
+ and the node is a member.
+
+What knowledge does the new node need \emph{before} the join? Simply the knowledge needed to
+ be a full member of the ring; a successor list that enables consistent lookups and a correct
+ predecessor link for \emph{keep-alive} messages. The immediate successor is needed for \emph{any}
+ consistent lookup, and adding the whole list increases the stability of the DHT significantly.
+
+\paragraph{The Leave Protocol}
+When nodes leave the ring, the node should be removed \emph{last} from its predecessor, as it
+ ensures that until the node is removed from the ring altogether, it still routes correctly to
+ it in case of concurrent lookups. This has some problems, like nodes that only holds the node in its
+ finger table, and does not need it for correct routing.
+
+If we assume the node is fail-fast
+ with regard to resilient link-failures, the node should have shut it self down before it is
+ forced from the routing tables of its inverse neighbors (nodes with the \qmark{leaving node} in
+ its routing tables). So the novel solution is to make sure the leaving node's successor
+ removes it before it's predecessor, which has the responsibility of managing its successor.
+
+Multiple failed nodes offers a more problematic solution, as activity knowledge for a node's
+ $s_2$ is not as accurate as for its $s_1$. This must be taken into account when on a leave,
+ the node's $s_2$ does not respond. This analysis is not done in this thesis.
+
+\paragraph{Protocol Design}
+The two protocols we describes here and their design are found
+ in Section \ref{design:mm-protocols}, and will not be discussed further here.
+ But there is a possibility of multiple failure, or failures related to the
+ protocols that does not alter the protocols themselves, but some of the
+ knowledge demands or related protocols.
+
+\subsubsection{Join-Leave Scenarios}
+\label{analysis:JoinFailure}
+
+A join-leave failure is a node failure that happens during the join algorithm or closely related to
+ the join protocol. Both scenarios described here may assume a \qmark{not so good} protocol
+ before the analysis, but this is in order to emphasize the problem itself.
+
+\begin{figure}[htp]
+\centering
+\subfigure[Joining node C]{\label{fig:JoinNDie-1}
+\epsfig{file=figures/ScenarioA-JoinNDie-Diagram1.eps,width=.42\linewidth}}
+\subfigure[Updated tables after join]{\label{fig:JoinNDie-2}
+\epsfig{file=figures/ScenarioA-JoinNDie-Diagram1-2.eps,width=.42\linewidth}}
+\subfigure[B Dies and tables are rendered incorrect]{\label{fig:JoinNDie-3}
+\epsfig{file=figures/ScenarioA-JoinNDie-Diagram2.eps,width=.42\linewidth}}
+\subfigure[Leave protocol with repair collaboration]{\label{fig:JoinNDie-4}
+\epsfig{file=figures/ScenarioA-JoinNDie-Diagram2-2.eps,width=.40\linewidth}}
+\parbox{.9\linewidth}{ \small
+  In this scenario node \emph{C} joins the ring just before node \emph{B} fails. This
+   renders the table on node \emph{C} problematic, but useable, and node \emph{A} have
+   a failed predecessor but doesent know that its new predecessor is \emph{C}, not
+   \emph{D}. This case is the responsibility of the \qstring{leave} protocol on \emph{A},
+   immediately checking for recently joined nodes.
+}
+
+\caption{Node join and failure}\label{fig:JoinNDie}
+
+\end{figure}
+
+\paragraph{Failure Scenario \emph{(A)}}
+The first scenario is where a node join is rapidly succeeded by node failure in the new
+ node's predecessor. This will give the new node and its new predecessor and successor
+ some work keeping the tables both updated and consistent. The scenario is illustrated in
+ Figure \ref{fig:JoinNDie}, and the four subfigures are used as references to states the
+ ring is in during the scenario.
+
+Lets trace consistency throughout the scenario. In Figure \ref{fig:JoinNDie-1} and
+ \ref{fig:JoinNDie-2} the tables are both consistent and have no dead links, and therefor
+ makes consistent lookup results. In Figure \ref{fig:JoinNDie-3} there are introduced nodes
+ with dead links. Lets assume node B is dead (node failure), and does not have link failure.
+ There are now two index ranges that changes ownership during this scenario:
+
+\begin{enumerate}
+\item Indices belonging to \emph{C} from the situation shown in Figure \ref{fig:JoinNDie-2}.
+\item Indices belonging to \emph{B} before the situation shown in Figure \ref{fig:JoinNDie-3}.
+\end{enumerate}
+
+The other index ranges (buckets) are considered safe, as knowledge about them is
+ consistent throughout the ring. There are also four lookup scenarios that must be
+ checked with each of the states and possibly faulty indices.
+
+\begin{description}
+\item[Lookup via \emph{A}] {\em(predecessor of dying node)}.
+  A will forward both clusters of indices to \emph{B}, and will subsequently fail until
+  the leave protocol is run (see Figure \ref{fig:JoinNDie-4}) has removed \emph{B} from
+  the successor list.
+\item[Lookup via \emph{B}] {\em(the dying node)}
+  is correct or forwarded until \emph{B} fails (see join protocol in \ref{design:mm-protocols}),
+  then all lookups will fail.
+\item[Lookup via \emph{C}] {\em(the new node)}
+  will return correct with indices belonging to \emph{C}, and indices belonging to \emph{B} will fail
+  until it is removed from the lists (fig. \ref{fig:JoinNDie-4}). Note that this is a
+  rare situation, as only \emph{D} knows about \emph{C}'s membership in the ring until the
+  situation in Figure \ref{fig:JoinNDie-4}.
+\item[Lookup via \emph{D}] {\em(successor of the new node)}.
+  Lookups for indices belonging to \emph{C} will be sent to \emph{C}, and are thus consistent. Indices
+  belonging to \emph{B} will fail until the protocol shown in Figure \ref{fig:JoinNDie-4}
+  is run, and \emph{C} has updated \emph{D} with new predecessor list update (see Section
+  \ref{design:iamalive}).
+\end{description}
+
+If the leave protocol is supplied with the possibility of unknown joined nodes between its
+ known $s_1$ and $s_2$, and in the case of multiple nodes leaves at once (multiple node
+ crashes or network partitioning), even later successors. This can be done with a recursive
+ protocol as shown in Figure \ref{fig:JoinNDie-4} that lets its $s_2$ check for its $p_1$
+ and compare. If the predecessor differs from the successor supplied with the join, it is
+ aborted and a new $s_2$ is supplied.
+
+\paragraph{Failure Scenario \emph{(B)}}
+Another scenario is if the immediate successor of a new node fails before the
+ new node knows its $s_2$. This scenario is less problematic than
+ the first scenario, as it is the responsibility of one of the nodes active with the
+ protocol to repair the ring.
+
+In the first scenario there was a node with almost complete tables that
+ \qmark{cleaned up} the dead node,
+ that made it easy because it knew its $s_2$ (\emph{D}) when \emph{B} failed.
+ Since \emph{B} doesn't necessary know its $s_2$ in this scenario, most lookups via this
+ node will fail until it is repaired.
+
+\begin{figure}[htp]
+\centering
+\subfigure[Node \emph{B} joins]{\label{fig:JoinNDieB-1}
+\epsfig{file=figures/ScenarioB-JoinNDie2-Diagram1.eps,width=.42\linewidth}}
+\subfigure[Updated tables after join]{\label{fig:JoinNDieB-2}
+\epsfig{file=figures/ScenarioB-JoinNDie2-Diagram2.eps,width=.42\linewidth}}
+\subfigure[\emph{C} dies and tables are rendered incorrect]{\label{fig:JoinNDieB-3}
+\epsfig{file=figures/ScenarioB-JoinNDie2-Diagram3.eps,width=.42\linewidth}}
+\subfigure[\emph{B} with additional successors]{\label{fig:JoinNDieB-4}
+\epsfig{file=figures/ScenarioB-JoinNDie2-Diagram4.eps,width=.42\linewidth}}
+\parbox{.9\linewidth}{ \small
+  This scenario is similar to Figure \ref{fig:JoinNDie}, but the new node's successor
+  dies instead of its predecessor. In Figure \ref{fig:JoinNDieB-4} node \emph{B} is
+  given a link to \emph{D} on join, and the failure scenario can be proved to give
+  consistent lookups with only use of commit-based (1PC) and successor-resolving leave
+  protocol.
+}
+\caption{Node join and node failure combination B}
+\label{fig:JoinNDieB}
+\end{figure}
+
+This scenario has two index clusters that are affected, but the other indices are
+ affected as well. If we look at the effect of lookup on \emph{B}'s, \emph{C}'s and
+ \emph{other} indices, this should suffice for the scenario.
+
+There are at least two possible solutions here.
+
+\begin{enumerate}
+\item Add a repair protocol that fixes the tables in this case. Problem: The new node
+ must do this through its predecessor, which offer a single point of failure during
+ the repair process. If both these nodes have failed before the routing tables are
+ repaired, the node is still part of the ring, as some nodes \emph{may} have added it to its
+ routing table, but is unable to do routing nor repair its own routing tables.
+\item Supply the new node with a complete successor list on time of \emph{join}. It
+ will now know a number of successors to query, and can take care of the \emph{leave}
+ protocol as if the join was not part of it.
+\end{enumerate}
+
+By using additional successors, Accord is safe from problems here as long as the
+ number of successive concurrently failing nodes does not increase beyond the
+ number of successors the new node is supplied with.

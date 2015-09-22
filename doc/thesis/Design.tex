@@ -1,0 +1,609 @@
+%%
+%%-----------------------------
+%%--                         --
+%%--  3  Design of Accord    --
+%%--                         --
+%%-----------------------------
+%%
+\section{Design of Accord}
+\label{sec:Design}
+\miniquote{    V. tr.: To cause to conform or agree; bring into harmony.\ \ \ \ \\
+    V. intr.: To be in agreement, unity, or harmony. Synonym [to] agree.\ \ \ \ \\
+         N.: Agreement; harmony: act in accord with university policies.\ \ \ \ \\
+                                                          Dictionary.com/Accord \\
+                                                                              \ \\
+}
+
+Accord was started as a small project for testing various methods and consistency
+ related protocols on
+ a DHT. But after a while it was clear it was becoming quite a complex Java library.
+ Basically the Accord system was made to adhere to some usability criteria.
+
+\begin{enumerate}
+  \item Platform Independency:
+  \begin{enumerate}
+    \item By using Java, Accord will be runnable without modification on most platforms today,
+      including Windows, UNIX, Linux and Mac OS, though the system design itself it not dependent
+      on the system being developed for the Java platform.
+    \item Avoiding secondary dependencies by using source based external classes only.
+  \end{enumerate}
+  \item Distribution:
+  \begin{enumerate}
+    \item The DHT's theoretical distribution limit is much larger than the physical limits
+      of todays networks for practical uses, therefor Accord should not be limited in the
+      scale of the distributed system. Other scalability criteria are not explored in this
+      design.
+    \item By using asynchronous communication, Accord should be very fault tolerant
+      on link failures, and each node should be complete runtime independent of its neighbors.
+  \end{enumerate}
+  \item System performance goals (No specific criteria, this depends on the protocols implemented):
+  \begin{enumerate}
+    \item Low CPU overhead.
+    \item Low Network utilization.
+  \end{enumerate}
+\end{enumerate}
+
+Accord is basically about agreement of membership. The system is made up
+ of four services plus the lookup tables. The routing tables, are built up
+ similar to that of Chord\cite{stoica-01-chord}. The four services are;
+ the service of looking up nodes in the DHT with the
+ \qmark{Lookup Service}; managing joining and leaving of the closest successor
+ and predecessor with the \qmark{Membership Manager}; monitoring the status
+ of the closest nodes and propagating table information along the ring with the
+ \qmark{I-Am-Alive Service}; and \emph{stabilizing} the routing tables with the
+ \qmark{Stabilizer}.
+
+The routing tables are described first, and the four services thereafter.
+
+\subsection{Routing in Accord}
+
+Accord is based on the \emph{ring geometry} based on consistent
+ hashing \cite{karger-97-consistent-hashing}, with a \emph{skip-list}-like
+ routing table structure for efficient lookup
+ modelled after Chord \cite{stoica-01-chord}. There are differences between
+ Chord and Accord like indexing and the number of routing tables used.
+
+\subsubsection{Indexing}
+\label{design:indexing}
+
+Since the objective of Accord was consistency, and not scalability, Accord is designed
+ with simplicity rather than efficiency in mind. {\tt SHA-1}\cite{sha-1} is chosen as hash
+ algorithm because it is the basis for the Chord algorithm\cite{stoica-01-chord}. Both
+ node IDs and data are indexed with {\tt SHA-1}; nodes from the \qstring{ip:port} string,
+ and data from its \emph{key} field.
+
+\paragraph{Comparing Indices} Accord was built for being able to use several different
+ means of indexing, and a special system of comparing indices was built. Since various
+ types and ranges of indices should be comparable, and distributed over the same
+ range of values, then both a 4 byte integer and a 40 byte {\tt SHA-1} message digest should
+ distribute over an equivalent range of values; \emph{even} if the numerical value of
+ the {\tt SHA-1} MD is far greater than
+ the maximum value of the integer. This distinction is made to enable Accord to use
+ different types of indexing at the same time.
+
+If we align the bits of the two values on the most significant bit (see table
+ \ref{tab:byte-align}) and fill the missing bytes with zeroes, we get two numerics
+ with approximately the same range, and with equivalent values and value ranges.
+
+\begin{table}[htp]\begin{center}% Index byte alignment.
+\begin{tabular}{|ccccccc|}                                                       \hline
+byte[19] & byte[18] & byte[17] & byte[16] & byte[15] & ... & byte[0]          \\ \hline
+byte[3]  & byte[2]  & byte[1]  & byte[0]  & \multicolumn{3}{|c|}{ ... 000 ...}\\ \hline
+\end{tabular}\end{center}
+\caption{Index Byte Alignment}
+\label{tab:byte-align}
+\end{table}
+
+%% ------------------------------------------
+\begin{wrapfigure}{r}{.34\linewidth} % fingers-responsibility
+\centering
+\epsfig{file=figures/Fingers-Responsibility.eps,width=.96\linewidth}
+\parbox{.95\linewidth}{
+\small
+ The various routing tables, including the successor and predecessor lists have
+ their index ranges of \qmark{responsibility}.
+  }
+\caption{Relative Ownership}
+\label{fig:responsibility}
+\end{wrapfigure}
+%% -------------------------------------
+
+\subparagraph{Index Arithmetics} Adding and Subtracting indices are done as aligned and
+ padded with zero bytes. The result then has the length of the \emph{largest} index. A
+ special method creating an $I_{max}\gg{}n$ value, called \qstring{ImaxRshN(n)} is added
+ to the {\em IndexFactory} to create the added offset used to locate the fingers (see
+ \ref{design:fingers}).
+
+\paragraph{Distance in Accord}
+\label{design:responsibility}
+The distance metric used in Accord is the reverse that of Chord. Calculated by
+ $d \equiv I_A - I_B (\mathbf{mod}\ I_{max})$ for the distance from $A$ to $B$, and
+  it creates a reverse Chord-like ring.
+
+\paragraph{Relative Ownership}
+As each node has a limited view of the DHT, each node distributes its immediate neighbors on
+ a logical ring, and assigning ranges of responsibility according to that view. The
+ logical ring uses the same distance metric, and assigns indices to the closest node.
+ The owner of each range of responsibility is determined by the
+ \qstring{owner\_of($\tau$)} method.
+
+The range of responsibility for a node $n$ in the ring is set to be
+ $\forall\ \tau\ \in\ I_n\ldots(I_{s_1}-1)\ \Leftrightarrow\ n=\mathtt{owner\_of(\tau)}$.
+
+A responsibility range as this has a bad side since there is an absolute
+ $I_n\preceq\tau\prec I_{s_1}$ range of responsibility,
+ and a worst case scenario a node gets a successor ($s_1$)
+ with index $I_n+1$, which gives the node a responsibility of only $1$ index. The good side
+ is that it is easier for other nodes to determine the responsible node of a given
+ index, as the range has absolute borders defined by the closest known node.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  OVERLAY STRUCTYRE  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Routing Tables}
+
+Accord is a distributed system, and therefore it need a consistent and efficient
+ routing table system which with it can do fast searching and maintenance.
+ There are three routing tables, the {\em successor list}, {\em predecessor list}
+ and {\em finger table}.
+
+The tables are referred to as \qstring{pred}, \qstring{succ} and \qstring{finger}.
+ Using \qstring{table[index]}
+ for calling the method to fetch the content of one of the routing tables with an
+ reference position, similar to what is used in arrays and vectors in C/C++ and Java.
+ When referred to with negative table references, e.g. \qstring{finger[-1]}, means to
+ count from the end of the list, relative to last filled element, which means that
+ \qstring{succ[-2]} means the second last element of the successor list.
+
+\paragraph{Successive Neighbors}
+Each node in the ring must know its successor, as it marks the end
+ of its responsibility range. It should also know its successor's successor,
+ as that is the node that will take over that border if its successor fails. By
+ using successive neighbors Accord gains stability, but is required to manage
+ more neighbors.
+
+In order to have a consistently updating successor list, each node is responsible of
+ \emph{sending its successor list to its predecessor}. This will ensure that when a
+ node either enters or leaves the ring, it's membership change knowledge
+ will propagate so its predecessor (etc.)
+ will include the new knowledge into its successor lists.
+ And in order of convenience, the predecessor list is set to be the same size as the
+ successor list.
+
+\paragraph{Routing Tables}
+\label{design:fingers}
+Chord uses two secondary routing tables for achieving efficiency in lookup,
+ the \emph{Finger Table} and \emph{Toe Table}. But since each node does not
+ have a full knowledge of the number of nodes in the ring, it uses the
+ intersection with its successor or predecessor lists as determination of
+ the size of the finger table.
+
+Since toes and fingers are somewhat difficult to manage, Accord will only use
+ \emph{finger table} and not \emph{toe table}.
+ The finger table is a simple skip-list, and does no attempt to
+ achieve any lower lookup latency with PRS or PNS.
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%  LOOKUP SERVICE  %%
+%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Lookup Service}
+\label{design:lookup}
+
+The lookup service is one of the main reasons for using DHTs, and has been
+ discussed in \cite{rhea-04-handling-churn,gupta-04-routing} and more.
+ Accord has two lookup procedures. One for looking up directly
+ from the overlay tables, which is needed by the \emph{stabilizer}, and one
+ for looking up the owner of an index in the ring.
+
+\subsubsection{Routing Table Lookup}
+\label{design:table-lookup}
+
+To open the possibility of remote looks on an overlay table, direct table lookups
+ are available. Each table lookup is based on the query syntax \qstring{table:index},
+ which corresponds to the \qstring{table[idx]} call, although relative indices should
+ be allowed here. \qstring{table} is the name of the routing table, and \qstring{index}
+ is the table vector index.
+
+\subsubsection{Index Lookup}
+\label{design:index-lookup}
+
+Index lookup, or just \qstring{lookup} is a simple operation,
+ but can be easily modified with \emph{iterative criteria}.
+ Accord uses a no-locking lookup protocol where each external participant
+ only checks the request and either forwards or replies to the request.
+
+\paragraph{Partial Result Modes}
+ (or just \qmark{mode}).
+When looking up an index in the local routing tables, the result will have different
+ security properties dependent on where in the tables the node is found. A node can
+ be \emph{self}, \emph{neighbor}, \emph{safe} or \emph{unsafe}. The
+ \emph{self} mode is when the responding node is the owner of the index, returning
+ it self. \emph{neighbor} is when the node is an \emph{immediate} neighbor, either
+ \qstring{succ[0]} or \qstring{pred[0]}. The \emph{safe} mode is more complicated;
+ if the neighbor lists are marked as \qmark{stable}, then a predecessor is safe, and a successor
+ \emph{except the last successor} is called \emph{safe}. All other nodes are called
+ \emph{unsafe}.
+
+A routing table is marked \qmark{stable} if there are no changes for a time with the argument
+ that nodes that have stayed for some time have a higher propability if staying even
+ longer\cite{maymounkov-02-kademlia}.
+ The \emph{safe} mode can be argued unnecessary, but the predecessor and successor
+ lists are managed differently than the fingers, and the \emph{safe} nodes may be
+ the correct owner of an index with much higher probability than the \emph{unsafe}.
+
+\paragraph{Lookup Options}
+
+Lookup behavior in Accord can be modified with some simple options. We can modify
+ timeout behavior, try count, and \emph{iteration restriction}. Timeouts in Accord
+ are constant but manageable. This is very easy to manage and program, but may
+ create some unnecessary timeouts and long waits.
+
+Implementing TCP style or Vivaldi timeout calculation requires monitoring and
+ calculating average timeout either for the system as a whole, or for each node.
+Constant timeouts was chosen as it does not alter the
+ properties of the membership protocols described in Section \ref{design:mm-protocols},
+ and are easy to manage.
+
+
+\subparagraph{Iterative Restrictions}
+The \qstring{--iter} option on lookup sets the criteria for whether a node handling a
+ lookup request should forward it to the relative owner or reply to the originator of
+ the request.
+ And there are two sides of the \qstring{--iter} argument; if \qmark{stability} is a
+ criteria for iteration {replying to a request}, or if it is a criteria for recursion
+ {forwarding of a request}. See table \ref{tab:iter-args} for overview of arguments.
+
+\begin{table}[htp]
+\begin{center}
+\begin{tabular}{|r|c|l|}                                                                       \hline
+{\bf argument    } & {\bf recurse } & {\bf description}                                     \\ \hline
+{\tt all         } & {\tt l,n,s,u } & Respond on \emph{all} requests.                       \\ \hline
+{\tt safe        } & {\tt l,n,s[u]} & Respond on all requests except on \emph{unsafe} links.\\ \hline
+{\tt neighbor    } & {\tt l,n[s,u]} & Respond on local and \emph{neighbor}, else forward.   \\ \hline
+{\tt default     } & \              & Use default iterative restriction argument.           \\ \hline
+{\tt no-neighbor } & {\tt l[n]s,u } & Respond on all except when node is a \emph{neighbor}. \\ \hline
+{\tt no-safe     } & {\tt l[n,s]u } & Respond when the node is \emph{local} or \emph{unsafe}.\\ \hline
+{\tt none        } & {\tt l[n,s,u]} & Only respond when node is \emph{self}.                \\ \hline
+\end{tabular}
+\parbox{.9\linewidth}{ \small
+The \qmark{recurse} column shows what behavior to choose on a lookup given its result
+ \emph{mode}. The four letters stand for \emph{\underline{l}ocal}, \emph{\underline{n}eighbor},
+ \emph{\underline{s}afe} and \emph{\underline{u}nsafe}, and the letters surrounded with
+ braces ({\tt[} and {\tt]}) are the modes on which to choose to \qmark{recurse} the request to
+ the next node instead of responding to the initiator. The nodes called \emph{neighbor} are the
+ immediate neighbors, $s_1$ and $p_1$.
+}
+\end{center}
+\caption{Iterative Restriction Arguments}\label{tab:iter-args}
+\end{table}
+
+The \emph{all} and \emph{none} options are equal to those discussed in
+ Rhea et al\cite{rhea-04-handling-churn}, called \emph{iterative} and
+ \emph{recursive} lookup respectively.
+
+The two options \emph{neighbor} and \emph{safe} are to tell the nodes to; reply on
+ immediate neighbors in addition to the local node; and to reply on immediate neighbors
+ \emph{and nodes considered safe}, respectively. To call a node \emph{safe} means that
+ it is part of a successor or predecessor list that has not been modified for some
+ time interval. This is determined by a simple modification \emph{timestamp} which
+ is checked against the \emph{current} time.
+
+The two options \emph{no-neighbor} and \emph{no-safe} are opposites of \emph{neighbor}
+ and \emph{safe}. They tell to \emph{recurse} on \emph{safer} nodes, and iterate on
+ \emph{unsafe} nodes. The case for the \emph{no-neighbor} is that if a node receives a
+ lookup request that it believes are bound for its own immediate successor or predecessor
+ it can forward it with a high probability of it still being alive.
+
+\subsubsection{Consistent Lookup}
+\label{design:consistency-in-lookup}
+
+In Section \ref{sec:Analysis} we discussed consistency with lookup, and found that the
+ lookup protocol is good enough as it is, and if the membership protocols make sure the
+ routing tables are consistent at \emph{all} times, it does not need to change. We will
+ therefor not discuss the matter further.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%  MEMBERSHIP MANAGEMENT  %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Membership Management}
+\label{design:membership}
+\label{design:mm-protocols}
+
+
+In \ref{analysis:MembershipFailure} we showed that inconsistent tables can
+ cause inconsistent lookup results. This section looks at how to manage the joining and
+ leaving of nodes, and the solutions supposed to solve the inconsistency problem.
+
+We propose two protocols, a new join protocol aimed at updating the routing tables
+ in a fashion that produces consistent tables in every step. To guarantee this
+ the join protocol is based upon a \emph{2-phase-commit} protocol as showed in
+ Ouzo et al\cite{oszu-99-podds}. % OUZO-PODDS: pp 381-390 (383)
+ The two \emph{Membership} protocols called \qmark{join} and \qmark{leave} are
+ responsible to achieve this.
+
+All the failure cases of \ref{analysis:MembershipFailure} are shown to be handled
+ with carefull membership management. There are two important management protocols,
+ \qmark{join} and \qmark{leave}. The \emph{join} protocol takes a new node safely into the ring,
+ and the \emph{leave} protocol takes a node safely out of the ring.
+
+In addition, the nodes have a push based keep-alive protocol, called the
+ \qmark{i-am-alive} service. Since the
+ finger table is not reflective, there is no help in propagating it to the
+ members. The \emph{stabilizer} is not a protocol per se, but a description of the dynamic
+ building and repairing of the routing tables that are used in Accord.
+
+
+\subsubsection{Neighborhood Responsibility}
+\label{design:neigbourhood}
+
+In Accord, each node is responsible for managing it's \emph{successor}, and to notify
+ it's \emph{predecessor} of the changes in its successor list and to some degree the
+ same for its predecessor. Since each node's
+ responsibility is defined as the range from it's own index to it's successors index,
+ managing the successor correctly will ensure consistent tables. This stems from that
+ each node must keep track of the end of its \emph{responsibility range}
+ (\ref{design:responsibility}).
+
+\subsubsection{Join Protocol}
+
+The join operation should be given the ACID properties as data in a database holds.
+ When a new member joins the DHT, it should from some moment and on be a member, for
+ all operations done thereafter. The four properties have different solutions related
+ to the \qmark{join} and \qmark{leave} protocols.
+
+The ACID properties: Atomicity, Consistency, Isolation and Durability are solved with
+ 2-level 2-phase commit join protocol and commit based leave protocol,
+ ordered table changes, membership protocol locking and
+ pre-join knowledge respectively. But since some of these means and effects are
+ interdependent, they must be assigned to the protocol as a whole.
+
+
+\begin{figure}[htp]
+\centering
+\epsfig{file=figures/Join-Sequence-Success.eps,width=\linewidth}
+\parbox{.9\linewidth}{
+\emph{Scenario:} Successfull \emph{join} using the \qmark{join} and \qmark{joinpred}
+ protocols. See figures \ref{fig:join} and \ref{fig:joinpred} for flowchart
+ showing the protocol. \emph{Join} in the protocol between $X$ and $Y$, and \emph{joinpred}
+ is the protocol between $Y$ and $Z$.
+}
+\caption{Successfull Join}
+\label{fig:join-sequence}
+\end{figure}
+
+The join protocol is quite complex, and is described in full in a flowchart in
+ Figure \ref{fig:join} and Figure \ref{fig:joinpred}, and as a UML sequence diagram
+ for a successfull join operation in Figure \ref{fig:join-sequence}.
+Figure \ref{fig:join} shows the interaction between the join protocol initiator (joiner)
+ and the joining node's predecessor in the ring, which is the node defining its range
+ of responsibility.
+Figure \ref{fig:joinpred} shows the interaction with the \emph{coordinator} of the join,
+ which is the new node's predecessor, and its successor prior to completion. The flowchart
+ shows the three \emph{substates} of the coordinator; \qmark{JP\_INIT}, the \emph{join\-pred
+ initial} substate; \qmark{JP\_COM}, the \emph{join\-pred commit} substate; and
+ \qmark{JP\_ABO}, the \emph{join\-pred abort} substate.
+
+Note that both protocols follows the two-phase commit in all ways except in termination,
+ and in the possibility of \qmark{direct} commit notification if neighbors are already in
+ place.
+
+Because of the two-level structure and using consistency as the main criteria for
+ termination, the protocol can have a much more relaxed termination protocol, based on
+ timeouts, than standard 2PC protocols. The only importance is that the \emph{join-pred}
+ protocol does not terminate after sending its commit confirmation.
+ This avoids that the confirmation message is lost and the protocol ended,
+ thus forcing the predecessor to manually check its successors routing tables.
+
+The ordering of table changes is shown with the \qmark{add} and \qmark{rem} enclosed
+ operations. Locking is achieved with locking access to the join and leave protocols
+ to only one instance at a time. This ensures that two join operations on the same
+ node does not interfere with each other.
+
+\begin{figure}[htp]% Figure: Join flowchart
+\centering
+\epsfig{file=figures/Join-Flowchart.eps,width=\linewidth}
+\parbox{.9\linewidth}{
+\begin{enumerate}
+{ \small\item Composite boolean operation:\\
+  $\neg isIndexConflict\ \wedge\ (\ indexIsMyResponsibility\ \vee\ (joiner = \mathtt{succ[0]}\ )\ )$. }
+\end{enumerate}
+  Flowchart over the \qmark{join} protocol. The flow ends at the dark gray boxes
+   (end states), and the light gray boxes are larger procedures or parts of protocols
+   which gives a return value. The protocol follows the basics of the
+   two-phase-commit\cite{oszu-99-podds}.}
+\caption{\qmark{Node Joining} Protocol Flowchart}
+\label{fig:join}
+\end{figure}
+
+\paragraph{The Connector-Predecessor \qmark{join} Protocol} is the part going between the
+ initiator of the join (the joiner), and the node that is to become its predecessor. The
+ flowchart (figure \ref{fig:joinpred}) follows the flow rules of state-machines, and each
+ \qmark{box} represent either a state (circle), a decision (diamond), or enclosed
+ operations (squares). The dotted and dashed lines are asynchronous messages sent between
+ two processes. Light gray boxes represent other state-machines, and darker gray represent
+ end states.
+
+The protocol has three main phases; initialization, ready and done. When it is done it
+ can either be committed or aborted. In the committed end-state for the initiator node
+ it is positively added to the ring. The problem here is if the invoked predecessor fails
+ during commit phase. The only way for the initiator to know if join has been successfull
+ is to lookup it self in the ring. If response is positive (returns \qmark{self}), the
+ node has joined, if the response is negative (other response), the join has failed.
+
+\begin{figure}[htp] % Figure: Join-Pred flowchart
+\centering
+\epsfig{file=figures/JoinPred-Flowchart.eps,height=0.665\paperheight} \\\ \\
+\parbox{.9\linewidth}{
+  The \qmark{joinpred} protocol part of the join protocol. The three states
+  (\qmark{JP\_INIT}, \qmark{JP\_ABO} and \qmark{JP\_COM})
+  are the three states described in \ref{design:mm-protocols}}
+\caption{\qmark{Predecessor Joining} Protocol Flowchart}
+\label{fig:joinpred}
+\end{figure}
+
+\paragraph{The Predecessor-Successor \qmark{joinpred} Protocol} takes part solely between
+ the invoked predecessor and its successor (as prior to join).
+ On the initiators part (joiner's predecessor) there are three
+ states, \emph{joinpred Initiate} \qmark{JP\_INIT}, \emph{joinpred Abort} \qmark{JP\_ABO} and
+ \emph{joinpred Commit} \qmark{JP\_COM} as
+ showed in the flowchart in figure \ref{fig:joinpred}. In total the three states makes up
+ the two phases of the commit protocol. The extra \qmark{loop} on the end of the successors
+ protocol makes sure the commit is received by the initiator.
+
+\subsubsection{Leave Protocol}
+
+The leave protocol of Accord is similar to the join protocol, but much simpler. The
+ second level of the protocol (between the predecessor and the successor of the
+ leaving node) is a one-phase commit protocol, as that removal does not break consistency in
+ lookup (see Section \ref{design:consistency-in-lookup} and Section \ref{analysis:MembershipFailure}).
+ The important part here is a node's
+ recoverability from after being halfway removed from the ring. It is done by invoking
+ the join protocol to repair links consistently. See Figure \ref{fig:leave-sequence} for
+ sequence of messages during the protocol. No flowchart is given.
+
+\begin{figure}[htp]
+\centering
+\epsfig{file=figures/Leave-Sequence.eps,width=\linewidth}
+\parbox{.9\linewidth}{
+\begin{itemize}{\footnotesize
+\item The Initiator can either be the leaver it self in case of \qmark{disconnect} or
+ the leaver's predecessor in case of failed \qmark{i-am-alive} messages. See Section
+ \ref{design:iamalive} for more on that.}
+\end{itemize}
+{\small
+The leave protocol successfull leave protocol use. This case is a mix of the failing
+ node and disconnecting scenarios, as on \qmark{disconnect} the node is never
+ \emph{checked}, and on failing node it doesn't request a response. }}
+\caption{Leave protocol sequence diagram}
+\label{fig:leave-sequence}
+\end{figure}
+
+Note that the leave protocol only works if the leaver's predecessor can access the
+ successor. In case of multiple consecutive node failures, the predecessor of the
+ first failing node must start the leave protocol on the last failed node first, and
+ then collapse the ring in between.
+
+\subsubsection{I-Am-Alive Protocol}
+\label{design:iamalive}
+
+The responsibility of making sure both neighbors know of the continuing activity of
+ a node, and propagating neighbor lists throughout the ring is the \qmark{I-Am-Alive
+ protocol}.
+
+The I-Am-Alive protocol is designed to take care of updating the predecessor and
+ successor lists. It does that by sending messages both ways periodically with its
+ continuing lists for the target. So the first successor get sent the predecessor
+ list, and the first predecessor gets the successor lists.
+
+Accord uses periodic neighbor update instead of reactive neighbor update because
+ periodic updates are simpler to manage, and costs less network activity in case of
+ churn. The down side is a constant network traffic cost of two I-Am-Alive messages
+ each sending interval for each node in the ring. This is considered trivial as
+ Accord is not designed for large scale DHTs.
+
+The I-Am-Alive protocol will activate the \qmark{leave} protocol if it looses contact
+ with its successor. But in the case for its predecessor ($p_1$), it will only
+ \emph{notify} its $p_2$ when it
+ looses contact with its $p_1$. A result of this is that only the predecessor of a
+ node can force a node to leave, and only if the node's next alive successor also have removed
+ the node. See \ref{design:index-lookup} for proof of consistency on lookup.
+
+%%---------------------------------------
+%%--   HENTET FRA DOKUMENTASJONEN !!   --
+%%---------------------------------------
+%%
+%% Counting Rules: (Calculated, not "checked") for a given N:
+%% [1] tmp = (( N - min_succ ) * stable_succ_ratio )
+%%     FC  = ( tmp > 0 ) ? ( N - min_succ - tmp ) : 0
+%% [2] NC  = NC = N - FC
+%%
+%% No Redundancy rule:
+%% [3] FC = 0   : succ[NC] <= pred[NC] < me
+%%     FC > 0   : me <= succ[NC] < finger[FC]
+%%
+%% Completeness Rule:
+%% [4] FC = 0   : NC  < min_succ  : pred[NC]          <= succ[NC].succ[0]  < me
+%%                NC >= min_succ  : (FH(2)+(Imax>>3)) <= succs[NC]         < me
+%%     FC > 0   : FH(FC+1) <= succ[nc] < finger[NC]
+%%
+
+\begin{table}[htp]
+\centering
+\begin{tabular}{|r|c|c|l|}                                                                                  \hline
+\multicolumn{4}{|l|}{
+Counting Rules:$^1$} \\ \hline
+[1] & \multicolumn{3}{|l|}{$tmp = ((N-{\mathtt{min\_succ}})\times{\mathtt{stable\_succ\_ratio}} ) $ }         \\
+    & \multicolumn{3}{|l|}{$FC  = \mathtt{if}( tmp > 0 )\mathtt{then}( N - {\mathtt{min\_succ}} - tmp )\mathtt{else}( 0 )$}         \\ 
+$\left[2\right]$ & \multicolumn{3}{|l|}{$NC  = N - FC $ }                                                             \\ \hline
+\multicolumn{4}{|l|}{Redundancy Avoidance:}                                                              \\ \hline
+[3]& $FC=0$ &\multicolumn{2}{|l|}{$(\mathtt{succ}[NC-1]\preceq\mathtt{pred}  [NC-1]\prec\mathtt{me})$}\\
+\  & $FC>0$ &\multicolumn{2}{|l|}{$(\mathtt{me}\preceq\mathtt{succ}[NC-1]\prec\mathtt{finger}[FC-1])$}\\ \hline
+\multicolumn{4}{|l|}{Completeness:}                                                                      \\ \hline
+[4]& $FC = 0$ & $NC<{\mathtt{min\_succ}}$  &
+                $(\mathtt{pred}[NC-1]\preceq\mathtt{succ}[NC-1]\mathtt{.succ}[0]\prec\mathtt{me})$     \\
+\  &\         & $NC\geq\mathtt{min\_succ}$ & $(BI\preceq\mathtt{succ}[NC-1]\prec\mathtt{me})$          \\ 
+\  &$FC\geq 0$& \multicolumn{2}{|l|}{$(FH(FC+1)\preceq\mathtt{succ}[NC-1]\prec\mathtt{finger}[NC-1])$} \\ \hline
+\end{tabular}
+\parbox{.9\linewidth}{
+\begin{enumerate}{\footnotesize
+\item These rules are calculated, not \qmark{checked} as a rule that
+   can be broken, and the result will vary and is used in the next rules
+   to check the actual stability criteria.}
+\end{enumerate}
+\small
+The $(\phi\preceq\tau\prec\psi)$ function is a representation of the
+ $between(\phi, \tau, \psi)$ function, notion is similar to the geometrical rule of
+ betweenness. $I_{max}$ is the number of values represented in an index, and $BI$ is
+ the index marking the \qmark{border} of when to start using fingers. All node references
+ refer to their index values unless used for locating other nodes. The $FH(i)$ method
+ refers to the \qmark{{\tt{}finger[$i-1$]} is owner of} property. }
+\caption{Stabilization Rules}
+\label{tab:stabilization-rules}
+\end{table}
+
+\subsubsection{Stabilization}
+\label{design:stabilization}
+
+Accord uses a periodic routing table updating protocol. The
+ difference between periodic and reactive table updates are discussed in
+ \cite{rhea-04-handling-churn}. In Accord long periodic update of non-critical tables
+ are used, as it requires less monitoring structure like leave notification, but it
+ costs some continuous network traffic, and greater risk of outdated tables.
+
+Since the \emph{membership manager} takes care of consistent neighbor joins and leaves,
+ and the \emph{i-am-alive} protocol quickly updates the neighborhood lists after such
+ updates, only the long range overlay links, and \emph{stabilizing} the lists are left.
+ This is the responsibility of the \emph{stabilizer} process.
+
+In Table \ref{tab:stabilization-rules} the method $FH(n)$ is used. It is a function that
+ generates the index value which each fingers should be the owner of respectively.
+
+The stabilizer have two main functions:
+\begin{enumerate}
+\item Make sure all links in the overlay table are valid (alive and a member of the same ring).
+\item Stabilize the ratio of successors to fingers according to the current table structure.
+\end{enumerate}
+
+To make a simple algorithm for achieving \emph{(2)} we have made some simple rules (see table \ref{tab:stabilization-rules}) that are run periodically to check if the tables are over-extending, insufficient or good. Over-extending tables are reduces, insufficient are increased and good tables are kept as-is.
+
+\subsection{System Design}
+\label{degign:SystemDesign}
+
+All in all, there are four main services of Accord: the \emph{Lookup Service}, the \emph{Membership Manager}, the \emph{I-Am-Alive Service} and the \emph{Stabilizer}. These work on a set of \emph{Overlay Containers} which makes up the overlay table or \emph{Lookup Table}.
+
+\begin{figure}[htp] % Accord Class Diagram
+\centering
+\epsfig{file=figures/Accord-ClassDiagram.eps,width=\linewidth}
+\parbox{.9\linewidth}{
+  Simple class diagram showing the main functionality of the main classes in Accord.
+  The four light gray classes are not part of Accord per se, but are important in
+  terms of functionality. The two darker gray classes are standard in Java.}
+\caption{Accord Class Diagram}
+\label{fig:domainmodel}
+\end{figure}

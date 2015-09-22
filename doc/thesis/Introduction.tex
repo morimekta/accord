@@ -1,0 +1,83 @@
+%%-------------------------
+%%--                     --
+%%--  1  INTRODUCTION    --
+%%--                     --
+%%-------------------------
+%%
+%% 1 - Problem Overview
+%% 2 - Terms and abbreviations
+%%
+
+\section{Introduction}
+\label{sec:introduction}
+
+\miniquote{
+    1. A person who has equal standing with another or others, as in rank, class,\\
+       or age: children who are easily influenced by their peers.\ \ \ \ \ \ \ \ \\
+3. Archaic. A companion; a fellow: \qmark{To stray away into these forests drear,\\
+                            /Alone, without a peer} (John Keats).\ \ \ \ \ \ \ \ \\
+                                                              Dictionary.com/Peer\\
+                                                                               \ \\
+}
+
+% \miniquote{
+% "A short essay should be like a short skirt; \\
+%     Short enough to be interesting, but long \\
+%   enough to cover the material"\ \ \ \ \ \ \ \\
+%                        - Anonymous Professor \\
+% }
+
+With time distributed systems have grown to proportions where the systems stall
+ under their own weight. After some scale most distributed systems come to a
+ point where adding nodes does not benefit for scale-up not speedup, and in
+ the worst case slows down the system services significantly. But a new approach
+ with Peer-to-Peer technology may help to solve the problem.
+
+Peer-to-Peer (P2P) technology has many good properties for a distributed
+ system. So far mostly used in loosely connected systems like file sharing
+ (Gnutella\cite{gnutella-homepage}) and instant messaging
+ (Jabber\cite{jabber-homepage}). And a new overlay in P2P is
+ Distributed Hash Tables (DHT), which in the beginning were mainly
+ projects to create structured P2P search structures, but is now used as basis
+ for many different projects.
+
+A Distributed Hash Table is a structure meant to locate the \qmark{owner} of data items
+ in a distributed system in a way similar to finding the container block in
+ a \qmark{normal} hash table. DHTs have proved to give good qualities in
+ terms of efficiency, many using $O(\mathrm{log\ }N)$ hops in
+ locating a data owners by using similar degree with routing tables.
+
+\subsection{Problem Background}
+\label{problem:overview}
+
+One interesting attribute of Distributed Hash Tables is how simple it is
+ to make use of, and be able to rely on it for lookup and routing. And although
+ most DHTs report of small to insignificant problems during churn, one problem
+ seems still to be unresolved; consistency.
+
+Bamboo tells of $99.99\%$ consistent lookup under light churn (Bamboo F.A.Q.
+ \cite{bamboo-homepage}), and $95\%$ under heavy churn. It
+ also compares Bamboo to other DHT's mentioned in the thesis, and none of these
+ gives $100\%$ consistent lookup. But is it possible? If so it may open more
+ possibilities of use for Distributed Hash Tables in general.
+ The problem becomes to identify where inconsistency comes from, and finding means
+ to counter these situations.
+
+\subsection{Thesis Overview}
+
+In Section \ref{sec:Theory} we will take a look at theory of Peer-to-Peer Networks
+ and Distributed Hash Tables. Then in Section \ref{sec:ProblemDescription}
+ we outlay
+ a detailed problem description, and set out the way we intend to solve the
+ problem. The problem is described after the theory because of its close dependency
+ on it. Analysis of the various problems are done in Section
+ \ref{sec:Analysis}, and
+ Section \ref{sec:Design} describes the key parts of the system design. Section
+ \ref{sec:Discussion} discusses how the solutions worked with solving the problem,
+ and how existing DHTs can make use of it, and what we got out of the analysis and
+ the project.
+
+We also append an appendix containing the description of, and an overview over the
+ source code of Accord in Appendix \ref{app:Code}. The source code of Accord, it's
+ JavaDoc, and thesis PDF file
+ are also appended externally with a CD-ROM.

@@ -1,0 +1,268 @@
+%%%%%%%%%%%%%%%%%%%%%%%%
+%%  PROJECT OVERVIEW  %%
+%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Project Overview}
+\label{app:Code}
+
+Accord has gone through many versions, from the first version (0.1)
+ in september 2004, to the final (0.9) version. The first version had less than 2000 lines,
+ only 6 classes. In between there were several rebuilds of the
+ system, from design and up to almost complete implementation, until some major
+ design flaw, Java API limitation, and even Java Runtime Error stopped the development.
+
+The final version was a redesign from a February 2005 (0.8) version that incorporated a lot of code from
+ earlier versions, but had a redesign (and reimplementation) of the membership
+ protocols. The total code lines in Accord amounts to approximately 4400, then including
+ the \emph{Accord\-Node\-Test} class, used for bootstrapping Accord system, a GNU Make--file,
+ a statistics--calculating script, and a clear--text config file.
+
+Accord consists of five packages each with a set of classes to do some job. Each package and class
+ is documented with \emph{Java\-Doc} and is compiled with both \emph{Java\-Doc} to {\tt HTML}, and
+ with \emph{Doxygen} to \LaTeX  (then compiled to DVI and converted to PostScript and PDF).
+
+\begin{small}
+\renewcommand{\descriptionlabel}[1]%
+  {\hspace{\labelsep}\normalsize\tt{#1}}
+\begin{description}
+\item[net.morimekta.accord] {\em (Accord Core Services)}
+
+     The main services of Accord, following the rules outlined in Section \ref{design:membership}.
+  The four main classes are;
+  the \emph{Stabilizer}, following the rules outlined in Section \ref{design:stabilization};
+  the \emph{I\-Am\-Alive} service, which employs the \emph{keep--alive} protocol for Accord;
+  the \emph{Member\-ship} service, which implements the \qmark{join} and \qmark{leave} protocols;
+  and the \emph{Lookup} service, managing lookup requests for many of the other services, and
+  for other users of Accord.
+
+\item[net.morimekta.accord.tables] {\em (Accord Routing Tables)}
+
+     This package contains the three routing tables of Accord; the \emph{Finger\-Table},
+  the \emph{Succ\-List} and the \emph{Pred\-List}. In addition it holds a generalization
+  of the routing tables called \emph{Overlay\-Container}, and a collected class combining
+  the three tables into a complete routing table system called \emph{Lookup\-Table}.
+
+\item[net.morimekta.net] {\em (Asynchronous Network Communication)}
+
+     On order to achieve asynchronous communication between the nodes in Accord,
+  we built an  UDP\cite{udp} based communication protocol. Passing around
+  \emph{Message} instances through a \emph{Message\-Socket}, and possibly invoking a
+  \emph{Message\-Service}. And
+  since nodes in Accord are indexed, a \emph{Location} class (inheriting
+  \emph{Inet\-Socket\-Address}) with indexing were built.
+
+\item[net.morimekta.util.index] {\em (Index Utilities)}
+
+   Index utilities that enables arithmetics and dynamic creation and comparison of
+  indices. The class \emph{Index} is the index itself with operations for adding, substraction
+  and comparison. The class \emph{Index\-Factory} is an abstract factory class for creating indices
+  from data or encoded strings. \emph{SHA1\-Factory} is a specialized factory for producing
+  SHA1 hashed indices.
+
+\item[net.morimekta.util.std] {\em (Standard Utilities)}
+
+   This package contains four classes that that does arbitrary jobs for Accord, like;
+  the class \emph{Log} is an active logger that does formatted timestamps down to the correct millisecond;
+  the class \emph{Options} parses and runs an option string with or without argument through an
+     abstract method \texttt{parse(c,arg)};
+  the class \emph{Config} loads key--value pairs from a config file and stores it into an object
+     (or static class);
+  and the class \emph{STD} that contains small and simple methods for unsigned big--integer arithmetics
+     and various byte--string operations.
+
+\end{description}
+\end{small}
+
+Table \ref{tab:ProjectOverview} holds a list of the classes grouped by package with its
+ code line count, line count and byte size.
+
+\begin{table} % IKKE [htp] Package and Class overview.
+\centering % package.Class | Code lines | Bytes
+\small\tt
+\begin{tabular}{lrrr}
+\bf\em Package and Class &\bf\em Code$^1$ &\bf\em Lines$^2$ &\bf\em Bytes \\ \hline
+net.morimekta.accord.AccordNode               &  140 &  298 &   8959 \\
+net.morimekta.accord.Conf                     &   27 &   51 &   1641 \\
+net.morimekta.accord.IAmAlive                 &  253 &  367 &  13277 \\
+net.morimekta.accord.Lookup                   &  462 &  806 &  32929 \\
+net.morimekta.accord.Membership               &  972 & 1394 &  61961 \\
+net.morimekta.accord.Stabilizer               &  309 &  537 &  22696 \\ \hline
+net.morimekta.accord.tables.OverlayContainer  &  185 &  444 &  11830 \\
+net.morimekta.accord.tables.PredList          &  131 &  179 &   7096 \\
+net.morimekta.accord.tables.SuccList          &  128 &  177 &   6822 \\
+net.morimekta.accord.tables.FingerTable       &  126 &  178 &   6378 \\
+net.morimekta.accord.tables.LookupTable       &  137 &  275 &   9051 \\ \hline
+net.morimekta.net.Location                    &  128 &  299 &   8977 \\
+net.morimekta.net.Message                     &  137 &  411 &  10992 \\
+net.morimekta.net.MessageService              &    5 &   23 &    684 \\
+net.morimekta.net.MessageSocket               &  307 &  627 &  19876 \\ \hline
+net.morimekta.util.index.Index                &   75 &  265 &   7280 \\
+net.morimekta.util.index.IndexFactory         &   18 &   62 &   1407 \\
+net.morimekta.util.index.SHA1Factory          &   53 &   95 &   2455 \\ \hline
+net.morimekta.util.std.Config                 &  167 &  303 &  13128 \\
+net.morimekta.util.std.Log                    &   80 &  184 &   4669 \\
+net.morimekta.util.std.Options                &   99 &  184 &   5287 \\
+net.morimekta.util.std.STD                    &  243 &  583 &  17748 \\ \hline
+\rm\bf SUM                                    & 4182 & 7742 & 275143 \\ \hline\hline
+\end{tabular}
+\rm
+
+
+\parbox{.9\linewidth}{
+  \footnotesize
+  \begin{enumerate}
+  \item Code lines are calculated with the UNIX command:\\
+     {\tt \% grep -c "[;\{\}]" \$(find -name *.java | sort) }\\
+     from the source code root folder for Accord.
+     This is then a number close to the actual lines of \emph{Java code} in the file.
+  \item This is the number of \emph{newline characters} in the source file.
+  \end{enumerate}
+  \small
+     The Accord Library (version 0.9) consists of 22 Java classes shown in this table
+     distributed over five packages. Each class is documented with \emph{JavaDoc}, authored by
+     Stein Eldar Johnsen. The exception is a bundled library class for encoding and
+     decoding {\sc Base64} strings which is copyrighted Robert Harder,
+     see \underline{http://iharder.net/base64} for more info about the class and its
+     properties and development.
+
+     There is also a test-node built for live-testing of the DHT overlay, called
+     {\tt Accord\-Node\-Test}, in a package {\tt test}, which is mainly just a bootstrapper
+     for an Accord node with options and some lookup functionality and statistical testing.
+}
+\caption{Class Overview}\label{tab:ProjectOverview}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%  USED APPS INFO  %%
+%%%%%%%%%%%%%%%%%%%%%%
+
+% \pagebreak
+% \section{Used Applications}
+% 
+% In the course of the Master a set of applications have been used for development, 
+%  development aid, and writing the thesis. Here is a short list and argument for
+%  why these applications were chosen.
+% 
+% \subsection{Java 2.0 SDK}
+% 
+% The Java 2 Platform, also known as Java SDK 1.5.0, were used as development platform. Before
+%  December 2004, Java 1.4 was used as various platforms still dod not have full support for
+%  the new version.
+% 
+% Development in C++ and Python was considered and found more problematic, or more difficult
+%  at that stage.Java was chosen because of easiness for development, and access to good
+%  Integrated Development Environments (IDEs).
+% 
+% See {\tt http://www.sun.com/java} for more information on \emph{Java} and \emph{JavaDoc}.
+% 
+% \subsection{Eclipse}
+% 
+% Eclipse was used as en IDE for most of the project, and as platform for version control for
+%  all text--files used in the thesis. In the beginning in 2003 Eclipse version 2.1 was used, and
+%  as soon as 3.0 came, it was substituted. But as the upcoming version 3.1 was going to support
+%  Java 2 it was used even as pre-release versions.
+% 
+% See {\tt http://www.eclipse.org/} for more information on \emph{Eclipse} and its tools.
+% 
+% \subsection{Kile}
+% 
+% \LaTeX{} is not an easy typesetting language to learn from scratch. In order to
+%  manage the building of the thesis document and its files, and to get usable
+%  \emph{debugging} help, Kile was used. Kile is a \LaTeX{} editor and IDE for KDE
+%  ({\tt http://www.kde.org/})
+% 
+% See more information on \emph{Kile} at {\tt http://kile.sourceforge.net/}.
+% 
+% \subsection{Dia}
+% 
+% Diagram Editor ............... ........... ........ .......
+% 
+% See {\tt http://www.gnome.org/projects/dia/} for more on \emph{Dia}.
+
+%%%%%%%%%%%%%%%%%%%
+%%  CD ROM INFO  %%
+%%%%%%%%%%%%%%%%%%%
+
+\pagebreak
+\section{Enclosed CD--ROM Overview}
+
+With this thesis a CD--ROM is enclosed including the source code of the Accord Library,
+ its documentation and the thesis document.
+
+\renewcommand{\descriptionlabel}[1]%
+  {\hspace{\labelsep}{\tt{#1}}}
+\begin{description}
+\item[/Accord/src/*] The Accord source code, scripts and default config files.
+\item[/Accord/doc/*] Accord Documentation Overview in Java\-Doc HTML format.
+\item[/Accord/doc/doxygen/*] Accord documentation compiled with \emph{Doxygen}. With
+  PostScript and PDF format files ({\small\tt accord.ps} etc.).
+\item[/Thesis/*] Thesis document in PostScript and PDF file format.
+\end{description}
+
+Of the content on the CD--ROM only the thesis document is printed.
+
+\emph{Doxygen} is a documentation format like JavaDoc, but understands
+ C, C++, Java and more languages, and can generate HTML (like JavaDoc),
+ XML Help files, MAN pages (*NIX style) and generate various diagrams
+ describing the code and its layout.
+
+% \pagebreak
+% 
+% \section{Code}
+% 
+% The code attached.
+% 
+% \lstset{language=java,basicstyle=\scriptsize,breaklines,numbers=left,numberstyle=\tiny,showstringspaces=false}
+% 
+% \subsection{net.morimekta.accord}
+% \subsubsection{net.morimekta.accord.AccordNode}
+% \lstinputlisting{net/morimekta/accord/AccordNode.java}
+% \subsubsection{net.morimekta.accord.Conf}
+% \lstinputlisting{net/morimekta/accord/Conf.java}
+% \subsubsection{net.morimekta.accord.IAmAlive}
+% \lstinputlisting{net/morimekta/accord/IAmAlive.java}
+% \subsubsection{net.morimekta.accord.Lookup}
+% \lstinputlisting{net/morimekta/accord/Lookup.java}
+% \subsubsection{net.morimekta.accord.Membership}
+% \lstinputlisting{net/morimekta/accord/Membership.java}
+% \subsubsection{net.morimekta.accord.Stabilizer}
+% \lstinputlisting{net/morimekta/accord/Stabilizer.java}
+% \subsection{net.morimekta.accord.tables}
+% \subsubsection{net.morimekta.accord.tables.OverlayContainer}
+% \lstinputlisting{net/morimekta/accord/tables/OverlayContainer.java}
+% \subsubsection{net.morimekta.accord.tables.PredList}
+% \lstinputlisting{net/morimekta/accord/tables/PredList.java}
+% \subsubsection{net.morimekta.accord.tables.SuccList}
+% \lstinputlisting{net/morimekta/accord/tables/SuccList.java}
+% \subsubsection{net.morimekta.accord.tables.FingerTable}
+% \lstinputlisting{net/morimekta/accord/tables/FingerTable.java}
+% \subsubsection{net.morimekta.accord.tables.LookupTable}
+% \lstinputlisting{net/morimekta/accord/tables/LookupTable.java}
+% \subsection{net.morimekta.net}
+% \subsubsection{net.morimekta.net.Location}
+% \lstinputlisting{net/morimekta/net/Location.java}
+% \subsubsection{net.morimekta.net.Message}
+% \lstinputlisting{net/morimekta/net/Message.java}
+% \subsubsection{net.morimekta.net.MessageService}
+% \lstinputlisting{net/morimekta/net/MessageService.java}
+% \subsubsection{net.morimekta.net.MessageSocket}
+% \lstinputlisting{net/morimekta/net/MessageSocket.java}
+% \subsection{net.morimekta.util.index}
+% \subsubsection{net.morimekta.util.index.Index}
+% \lstinputlisting{net/morimekta/util/index/Index.java}
+% \subsubsection{net.morimekta.util.index.IndexFactory}
+% \lstinputlisting{net/morimekta/util/index/IndexFactory.java}
+% \subsubsection{net.morimekta.util.index.SHA1Factory}
+% \lstinputlisting{net/morimekta/util/index/SHA1Factory.java}
+% \subsection{net.morimekta.util.std}
+% \subsubsection{net.morimekta.util.std.Config}
+% \lstinputlisting{net/morimekta/util/std/Config.java}
+% \subsubsection{net.morimekta.util.std.Log}
+% \lstinputlisting{net/morimekta/util/std/Log.java}
+% \subsubsection{net.morimekta.util.std.Options}
+% \lstinputlisting{net/morimekta/util/std/Options.java}
+% \subsubsection{net.morimekta.util.std.STD}
+% \lstinputlisting{net/morimekta/util/std/STD.java}
+% 
+% 
+% 

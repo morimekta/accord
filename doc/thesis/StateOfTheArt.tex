@@ -1,0 +1,1087 @@
+%%-----------------------------
+%%--                         --
+%%--  2  State of the Art    --
+%%--                         --
+%%-----------------------------
+
+\section{State of the Art}
+\label{sec:State-of-the-art}
+\label{sec:Theory}
+
+\miniquote{
+  1. The mathematics of the properties, measurement, and relationships of \\
+            points, lines, angles, surfaces, and solids.\ \ \ \ \ \ \ \ \ \\
+                                            2. Configuration; arrangement.\\
+  3. A physical arrangement suggesting geometric forms or lines.\ \ \ \ \ \\
+                                                  Dictionary.com/Geometry \\
+                                                                        \ \\
+}
+
+In the wake of the Internet, filesharing came with applications like
+ Napster\cite{napster-new-homepage}.
+ But in the legal turmoil of filesharing\cite{napster-legal-homepage},
+ offsprings like Gnutella\cite{gnutella-homepage} and Kazaa\cite{kazaa-homepage}
+ came to counter some of the the legal pitfalls of filesharing.
+ Both Gnutella and Kazaa solved the problem
+ by eliminating the central server in Napster with a set of peers
+ located on the user's computers. Both Gnutella and Kazaa are unstructured
+ networks that uses some modified flooding algorithm for searching in the
+ repositories.
+
+Inspired by these programs the Distributed Hash Table (DHT), a structured
+ peer-to-peer overlay system, was developed. One of the main
+ focuses of the DHT is to provide a \qmark{put/get} overlay similar to that of
+ a \qmark{local} hash table without needing to know about all the other nodes
+ in the
+ distributed system, and to be able to look up by value (or key or index) instead
+ of by address.
+
+In a Peer-to-Peer (P2P) system, all nodes have a set of the same overlay services,
+ and communicate via a set of protocols to locate the owner nodes of each
+ data item.
+ But in order to enable a large number of participating nodes,
+ each one can only have a small
+ subset of all the nodes in its memory, and the challenge becomes then how to
+ locate the right node for a given data item.
+
+The field of Distributed Hash Tables is so new, as most works are from 2001
+ or later, therefor this Section is called \qmark{State of the Art}
+ not \qmark{Theory}.
+ More or less all of the projects referred to are still active and
+ related to DHTs.
+
+\subsection{Theoretical Background}
+
+Before the wake of the Distributed Hash Table, some theories came out from database
+ communities that made the foundation for the theories and techniques of the DHT.
+ The first mention of the term \qmark{Distributed Hash Table} came from
+ Devine et al\cite{devine-93-design}, which came up with a novel solution for
+ updating a distributed dynamic hash table (DDH).
+
+Devine stated that if each forwarded data access requests that were not \qmark{local},
+ these would arrive at the correct position even if all nodes did not have updated
+ and complete hash tables. The design also allowed for nodes (buckets) to arrive at any
+ time, but was still based on using
+ more or less complete hash tables at each node, and using standard methods for
+ bucket splitting etcetera. The \qmark{Distributed Hash Table} became dynamic with
+ regard to joins,
+ but still not very efficient with rapid table changes (churn).
+
+\subsubsection{Replication Access}
+
+With the rapid growth of large distributed databases, access to nearby replicates
+ of stored data became important. Plaxton et al\cite{plaxton-97-accessing-nearby}
+ proposed a novel scheme for ordering the hash tables in groups of
+ \qmark{nearby nodes}. This scheme is called the PRR routing, the PRR scheme and
+ the Plaxton scheme. We use the last of these names.
+
+\paragraph{Plaxton Scheme}
+\label{theory:PlaxtonScheme}
+
+Plaxton created a table with $m$ columns and $n$ rows such that $m^n=N$
+ ($n=\mathrm{log_m}N$). The theory states
+ that if each node could locate a nearby node (in terms of topology), for each
+ position in the table, except it's own, it could by simple routing locate
+ a node nearby which holds the desired \emph{replica} with $O(\mathrm{log\ }N)$ steps.
+
+\begin{table}[htp] % Plaxton Scheme Routing Table
+\centering
+
+\begin{tabular}{cc}
+\begin{tabular}{||c|c|c|c|c||} \hline\hline
+ $0xxx$ &   --   & $2xxx$ & $3xxx$ & $4xxx$ \\ \hline
+ $10xx$ & $11xx$ &   --   & $13xx$ & $14xx$ \\ \hline
+   --   & $121x$ & $122x$ & $123x$ & $124x$ \\ \hline
+ $1200$ & $1201$ &   --   & $1203$ & $1204$ \\ \hline\hline
+\end{tabular}
+
+&
+
+\parbox{.48\linewidth}{
+  A Plaxton Scheme Routing
+  Table\cite{plaxton-97-accessing-nearby} for the
+  node with index $1202$. This example shows a simple
+  $5\times{}4$ table allowing for a $625$ node (from
+  $5^4$) DHT. The $x$ stands for a random number
+  in the index space, like $3xxx$ can be
+}
+\vspace{.005\paperheight}
+\end{tabular}
+
+\parbox{.9\linewidth}{
+  any node from $3000$ to $3444$.
+  When routing from this table to the node $3433$, the algorithm chooses the lowest table
+  entry which has the same prefix as the target index. In this example it becomes the
+  $3xxx$ node.
+}
+\caption{Plaxton Scheme Routing Table}\label{tab:PlaxtonRouting}
+\end{table}
+
+With a table of only $16$ elements\footnote{$16$ not $20$ since the table elements
+ at the position of the local node stands empty.}, a Plaxton scheme can handle a
+ $5^4=625$ node distributed database. And on the same time it can have fast access
+ to nearby nodes and hold routing tables reaching every node in the system with the
+ same number of steps.
+
+Some problems with the Plaxton scheme is the need for global knowledge at time of
+ constructing the routing tables (called a \emph{Plaxton mesh}); root node vulnerability,
+ as each object is dependent on a
+ root node as \qmark{storage block}; and lack of adaptability for dynamic queries for distant
+ hot-spots\cite{zhao-01-tapestry} etcetera.
+
+\paragraph{Replication with Plaxton Scheme}
+The whole point of the Plaxton scheme is to be able to locate replicas for all buckets
+ in a cost effective way. Nodes over the system is bound to have different network cost,
+ and some node for each section of buckets is necessary \emph{closer} than the others.
+ Plaxton et al based their method on this, and on \emph{local convergence}, which is an
+ effect of locality based routing explained in Section
+ \ref{theory:Routing:Proximity-Neighbors}.
+
+If each nodes chooses the closest but correct node for each table entry in the Plaxton mesh,
+ these nodes are quite likely to be the same node for some group of \emph{close by} nodes.
+ If then often accessed objects in the hash table are placed at nodes which are
+ often used as part access points for these objects (or nodes that are often used
+ for accessing an object replicate that object), the access time (due to node-to-node latency and
+ hop-count) will average toward $1\times l_{min}$, where $l_{min}$ is the minimum latency
+ to a node \emph{in \qmark{direction} of the node owning the object}.
+
+\subsubsection{Consistent Hashing}
+\label{theory:ConsistentHashing}
+
+Consistent hashing\cite{karger-97-consistent-hashing} is a way to distribute
+ indices over series of \emph{ranges}. Each range is mapped into an index
+ space $(\mathbf{mod}\ I_{max})$ creating a virtual ring of ranges. To map an
+ index to a range, each range is identified by a \emph{bucket index}, and
+ each index is given to its \emph{closest} bucket for some definition of
+ \emph{closeness} (or \emph{distance}).
+
+As each bucket is defined by the range from the previous bucket index
+ to the current bucket index, each bucket can be identified by its
+ \emph{successor index} of the indices \qmark{belonging} to the bucket,
+ which is also the bucket identifier.
+
+If the buckets in a hash table are positioned randomly, then given a hash
+ function with appropriate spread and monotonicity, each
+ bucket should contain approximately the average bucket fill. With this
+ distribution, consistent hashing provides a true dynamic hash table
+ structure that many DHTs are based on.
+
+\subsubsection{Hypercube}
+\label{theory:Hypercube}
+
+\begin{figure}[htp]
+\centering
+\subfigure[A 4D Hypercube]{\label{fig:Hypercube-4cube}
+\epsfig{file=figures/Hypercube-4cube.eps,width=.3\linewidth}}
+\hspace{.1\linewidth}
+\subfigure[Hypercube Routing]{\label{fig:Hypercube-Routing}
+\epsfig{file=figures/Hypercube-Routing.eps,width=.3\linewidth}}
+\parbox{.9\linewidth}{\small
+   A Hypercube is a cube of \emph{d} dimensions. In the case of Figure
+   \ref{fig:Hypercube-4cube} a 4D cube. This cube has 16 vertices and
+   32 edges. Each vertex is connected to 4 edges, each to different vertices
+   in a structure that the distance between any two vertices is at most
+   4 edges. For a 3D cube Figure \ref{fig:Hypercube-Routing} shows how
+   routing works. The two paths ($A$ and $B$ have the same length, and are
+   thus equivalent, but they involve different intermediate nodes. }
+\caption{Hypercube}
+\label{fig:Hypercube}
+\end{figure}
+
+With supercomputing, one problem have been how to make a large amount of
+ processors communicate in a fast and simple fashion, and one of the more
+ popular solutions have been to use the hypercube\cite{hayes-86-microprocessor}.
+
+A hypercube is a $d$-dimensional cube, the most famous being the 4-D hypercube.
+ The hypercube is formed by making the formation of the cube as a set of
+ dimension-adding rules, and extend it to the appropriate dimension.
+
+Mathematically a hypercube can be described as a graph of $2^d$ vertices where
+ each vertex is connected to exactly $d$ other vertices in such a fashion that
+ the largest distance between two vertices are $d$ edges.
+ Routing in the hypercube is done by \qmark{correcting} dimensions, and thus
+ approaching the target processor. Each step in this process is deterministic,
+ but one can choose path in order to avoid congestion at certain processors.
+
+
+
+
+\subsection{Distributed Hash Tables}
+
+A DHT is a vague term for describing a service for storage and retrieval of data
+ items in a distributed system by use of a deterministic hash function,
+ notably peer-to-peer. There are many forms of
+ systems that uses a variety of algorithms, geometries, and communication
+ protocols.
+
+\subsubsection{Terms}
+
+There are many terms of the DHT that must be described before the technical
+ descriptions will make any sense. First there are some aspects of the DHT that
+ are constantly used throughout the thesis:
+
+\begin{description}
+  \item[ DHT: ] {\small\em abbr.}
+     Distributed Hash Table. Note that when referring to the DHT structure, the
+     DHT's \emph{geometry} or just simply \qmark{system} is often used instead.
+  \item[ Geometry: ]
+     All references to geometry refers to the structure of which the DHT
+     distributes and routes its indices. The geometries of DHTs are described
+     in Section \ref{theory:Geometry}.
+  \item[ Topology: ]
+     Topology refers to the network of nodes with communication distances
+     (like latency, throughput etc.) that the DHT works on.
+     The Topology of a DHT can be represented
+     by a graph of nodes and their communication lines, which is dependent
+     on the physical network rather than the DHT geometry or structure.
+  \item[ Lookup: ]
+     A means to find a node in the ring that owns a specific index. In this
+     thesis the term \emph{lookup} will be used consistently for lookup of the
+     owner of an index, although the same procedure is also called
+     \emph{routing} in some of the literature. In this thesis the two terms are
+     used as for separate and distinguishable operations.
+  \item[ Routing: ]
+     A means of finding a path (route) to a node closer to the owner node of
+     an index. Routing is the basis for lookup, and is described in Section
+     \ref{theory:Routing}.
+  \item[ Neighbor: ]
+     Refers to an overlay link in the routing structure (e.g. used for routing).
+  \item[ Distance: ]
+     Most DHTs use some form of distance metric that is used for choosing routing paths,
+     or in some cases just to describe its algorithms.
+  \item[ Scale: ]
+     The scale of a DHT is the total number of nodes in the system. Mostly the
+     scale is estimated or used with simulations and calculations, as it is difficult
+     for a single node to find or calculate its true value.
+  \item[ Degree: ]
+     The degree is the number of neighbors a node must maintain continuous knowledge
+     of or contact with. The average or estimated degree is mainly a function of
+     the system's scale.
+  \item[ Hop-count: ]
+     The number of nodes that are involved in routing a message from one node to another.
+     Most used are the \emph{average} and \emph{expected} hop-count of the system.
+  \item[ Proximity: ]
+     The \emph{proximity} of two nodes is a measurement of \emph{closeness}, often
+     measured with the (inverse) message round-trip latency
+     between two nodes. Good proximity means low latency and short distance. The
+     proximity measurement, between two nodes, is \emph{not} related to the \emph{distance}
+     between the same two nodes.
+\end{description}
+
+There may be a little confusion about what is the \emph{geometry} and what is the
+ \emph{algorithm} of a DHT.
+ \emph{Geometry} is used when describing the basic routing structure
+ and the path selection algorithm of the routing strategy (e.g. Ring or Tree routing).
+ \emph{Algorithm} is used when describing design decisions like communication protocols,
+ data structures or calculations (e.g. {\tt SHA-1} or Iterative Routing).
+
+The term \emph{index} is also used instead of \emph{key}. This stems from the fact
+ that what is stored in the hash table are \qstring{key,value} pairs, although it
+ is a computed \emph{hash} value, called \emph{index}, that is used to locate the
+ desired bucket (or node).
+ Therefor \emph{index} is used to refer to the \qmark{numerical index value} used in
+ routing, and \emph{key} refers to the part of the data item from which the
+ \emph{index} is computed.
+
+\paragraph{Symbols}
+
+We also use some mathematical symbols to describe the algorithms.
+
+\begin{description}
+  \item[$N$] The scale of a DHT; the number of nodes in a system at a given point
+     in time as a variable. Mostly used theoretically or approximately.
+  \item[$I_n$] The index of node $n$. Only used when a node is identified by a single
+     index, otherwise it is explained.
+  \item[$I_{max}$]
+     The maximum value of indices the DHT can use for its key distribution.
+     Most calculations with indices are done $(\mathbf{mod\ }I_{max})$,
+     representing a $\mathbb{Z}_{I_{max}}$ field of integers.
+  \item[$s_i$] The $i$'th successor of the \emph{current} node.
+  \item[$p_i$] The $i$'th predecessor of the \emph{current} node.
+\end{description}
+
+
+
+
+\subsection{Geometries}
+\label{theory:Geometry}
+
+All DHTs must organize its indices in a way that makes it possible to exactly
+ locate stored data. That means each key must be assigned to the same
+ \emph{bucket} every time it is looked up by the same algorithm independent of
+ service.
+
+The geometry of a DHT is the way the data is organized, and how to locate the
+ appropriate node owning each index. Since we work with numerical index values
+ computed with hash functions,
+ it is mostly in terms of organizing a \qmark{value-space}. A range of values can be
+ organized in a set of \emph{dimensions}. With one dimension, we get a linear or
+ continuous value space, more will form an $d$-dimensional
+ space\cite{balakrishnan-03-looking,ratnasamy-01-CAN}. Indices can also be arranged in a non-linear space, e.g. corresponding to a hypercube or with other models.
+
+\subsubsection{Ring}
+\label{theory:Geometry:Ring}
+
+When accommodating the theory of consistent hashing into a practical DHT, The
+ Chord\cite{chord-homepage,stoica-01-chord} model bay be the simplest to explain.
+ First Chord assigns
+ an index value to each node in the system. The value is a hash of the
+ \qstring{IP:port:VNID} string (\qstring{VNID} is a \emph{virtual node ID} that
+ is used to make many virtual nodes on each physical node), using the same
+ hash function as when calculating the indices from the data's keys.
+
+For distribution, each index is assigned to its \emph{successor node}, that is the
+ next node from the point of the index along the ring axis. This node is simply
+ called the \emph{successor node} of index $i$. The successor is located by routing
+ lookup messages along the ring until the successor node of the current node is the
+ successor of the index.
+
+With this distribution, the distance between two nodes $A$ and $B$ is calculated so
+ that the distance from $A$ to $B$ is
+ $I_B - I_A\ (\mathbf{mod\ }I_{max})$.
+
+Other ring DHTs use a closer variant of Karger et al\cite{karger-97-consistent-hashing}
+ which proposes to use the node which the largest common prefix (counted in number of
+ bits shared before first unique) or simply numerically difference.
+
+\begin{wrapfigure}{r}{.45\linewidth}
+\epsfig{file=figures/Ring-Ownership.eps,width=\linewidth}
+\parbox{\linewidth}{\small
+   The ownership in a Chord ring is always allocated to the index's successor. The
+   successor is the nodes with closest numerically \emph{higher} index. With this
+   example, all indices in the range from (but not including) $I_B$ to (and including)
+   $I_C$ is allocated to $C$.
+}
+\caption{Ring Index Ownership}
+\label{fig:Ring-Ownership}
+\end{wrapfigure}
+
+\paragraph{Skiplist routing}
+
+The simplicity of consistent hashing means also a need for routing tables. Each node
+ in Chord contains a pair of \emph{skip-list}-like hash-tables. These tables contain
+ the nodes at various points in the ring positioned to make maximum efficiency
+ with a minimal table size.
+
+The two tables used in Chord, called \emph{fingers} and \emph{toes},
+ contain the successor nodes of the indices at 
+   $I_n + {2^i}\ (\mathbf{mod}\ I_{max})$ and
+   $I_n - {2^i}\ (\mathbf{mod}\ I_{max})$ for
+   \qstring{finger[i]} and \qstring{toe[i]} respectively.
+ The routing is done by finding the last node in the routing
+ tables that is \emph{not} the successor of the
+ index sought for, and if the immediate successor is the successor
+ node if the index, it is reported to the lookup requester as the
+ index owner.
+
+The skip-list is quite efficient, providing an average hop-count of
+ $O(\mathrm{log\ }N)$ with a similar degree of $O(\mathrm{log\ }N)$. The efficiency is
+ achieved by at least halving the distance to the successor node of the index
+ for each hop.
+
+\paragraph{de Brujin}
+Kaashoek and Karger\cite{kaashoek-03-koorde} showed that the hop-count gained with
+ skip-list routing (like Chord) of $O(\mathrm{log\ }N)$ is not
+ optimal, and that it is possible to maintain a hop-count of
+   $O(\mathrm{log\ }N / \mathrm{log\ log\ }N)$
+ by use of de Bruijn graphs for building its routing table when maintaining
+   $O(\mathrm{log\ }N)$ neighbors. Koorde employs the de Bruijn graphs to maintain
+ a constant degree DHT where the neighbor links correspond to the edges of the de
+ Bruijn graph; two for each node in a sparsely populated ring.
+
+\paragraph{Small World}
+Symphony uses a different approach to routing. The theory is
+ that a large mass of nodes can communicate just as efficient with a few random
+ neighbors. For its routing table, Symphony chooses $k\ge1$ random indices and looks
+ up their successors. With this setup and avoiding more than $2\times k -1$ other such neighbor's
+ inverse neighbors (NIN) Manku et al\cite{manku-03-symphony} showed that a
+ configuration with $k=5$
+ such neighbors can route very efficient independent of the scale.
+ The system keeps an expected hop-count of $O(\frac{1}{k}\mathrm{log}^2\ N)$, and a
+ constant degree of $k$ ($O(1)$).
+
+
+
+
+\subsubsection{Tree}
+\label{theory:Geometry:Tree}
+
+The \qmark{old} way of locating a single part of a hash table is by using tree
+ structures such as the B-tree. And with the advent of the Plaxton
+ scheme\cite{plaxton-97-accessing-nearby}, came a novel way to access a large set of
+ nodes with a limited \emph{local routing table}.
+
+Zhao et al proposed such a DHT with Tapestry\cite{zhao-01-tapestry}. Tapestry uses
+ a modified Plaxton scheme routing table, using the longest common \emph{suffix} as
+ distance metric. To accommodate for not being able to fill the Plaxton mesh entirely, they
+ fill it as long as there are possible entries, and when a node cannot find a node
+ with a longer common suffix with the index than itself, it claims the ownership.
+
+Pastry uses also a Plaxton mesh for routing tables\cite{rowston-01-storage-past},
+ although with using a longest common prefix as distance metric, and a ring
+ geometry for \qmark{low distance} routing.
+
+\paragraph{Supernodes}
+In order to take into account the non-uniform distribution of resources among the
+ nodes in the Internet, Brocade uses a structure of \emph{supernodes} that form a
+ Tapestry of their own\cite{zhao-02-brocade}. Routing is mainly done through the
+ supernodes thus putting less load on low-resource nodes, and more on high-resource
+ nodes.
+
+\paragraph{XOR Metric}
+\label{theory:Geometry:XOR}
+
+Another way to calculate distance is to use the \emph{exclusive OR} (XOR) metric, calculated
+ that the distance between two points $x$ and $y$ ($d(x,y)$) is $x\oplus y$. Note that
+ ownership with XOR is similar to longest common prefix, although have a continuous distance
+ metric for all index pairs. Although XOR is non-Euclidean it is very versatile
+ in a mathematical sense\cite{maymounkov-02-kademlia}, and by using the XOR metric Kademlia
+ gets a unidirectional distance metric since $d(x,y) = d(y,x)$
+
+One of the problems noted about the ring and tree model is the model's one way
+ knowledge about it's neighbors. This results in that the nodes have to employ an
+ active keep-alive (i-am-alive) algorithms\cite{zhuang-05-failure-detection}.
+ Kademlia\cite{maymounkov-02-kademlia} uses a \emph{constrained gossiping} stabilization
+ algorithm to achieve a stable DHT structure, by fetching nodes by their lookup
+ messages.
+
+For routing Kademlia employs a Plaxton scheme-like routing table with entries for each
+ $2^i\ldots2^{i+1}$ distance range, and a list of $k$ nodes per entry (called a \emph{k-bucket}).
+ This make an $O(\mathrm{log\ }N)$ average hop-count and similar degree DHT.
+
+\subsubsection{Hyperspace}
+\label{theory:Geometry:Hyperspace}
+
+\begin{figure}[htp]
+\centering
+\subfigure[Index Ownership]{\label{fig:CAN-Ownership}
+\epsfig{file=figures/CAN-Ownership.eps,width=.3\linewidth}}
+\parbox{.05\linewidth}{\ }
+\subfigure[Neighbors]{\label{fig:CAN-Neighbors}
+\epsfig{file=figures/CAN-Neighbors.eps,width=.25\linewidth}}
+\parbox{.05\linewidth}{\ }
+\subfigure[Routing]{\label{fig:CAN-Routing}
+\epsfig{file=figures/CAN-Routing.eps,width=.25\linewidth}}
+\parbox{.9\linewidth}{\small
+   Subfigure \ref{fig:CAN-Ownership} shows how the nodes in CAN divides the index
+   space with its dimensional range coordinates. Node $D$ in Subfigure \ref{fig:CAN-Neighbors}
+   has $4$ neighbors; $B$, $C$, $E$ and $G$, likewise $E$ has $B$, $D$, $F$ and $G$ as neighbors.
+   Subfigure \ref{fig:CAN-Routing} shows routing from $S$ to $T$. It also shows that optimal
+   routing is not only to route in the right direction; if there is a random
+   distribution of split nodes, they pose a difficulty in determining the distance gained for a hop.
+}
+\caption{Content-Addressable Network}\label{fig:CAN}
+\end{figure}
+
+It is possible to use a hypercube as a basis for a geometry for DHTs as well as a
+ model for supercomputers.
+ With CAN\cite{ratnasamy-01-CAN} the model has been accommodated into a more versatile
+ indexed $d$-dimensional \emph{hyperspace}. Which is done by using each dimension as
+ a continuous index space instead of as a binary choice. Note that CAN is using a
+ hyperspace, \emph{not} a hypercube geometry, but if there are $2^d$ nodes in the DHT and
+ uniform distribution, it is \emph{geometrically equivalent} to a hypercube.
+
+Distance in hyperspace is measured geometrically, so that in a 2D-space (known as
+ Euclidean geometry), the distance between two points $A$ and $B$, each measured with
+ two axis positions, noted as $A_1$ and $A_2$ for node $A$ and becomes
+   $\sqrt{(A_1-B_1)^2+(A_2-B_2)^2}$, and similar for more dimensions.
+
+Nodes are not assigned space in CAN as in other DHTs. When a node enters CAN, it
+ first locates a node that is able (or willing) to \emph{split} its space. CAN always
+ tries to find a node with a \qmark{large} index space to split, and thus keeps some load balancing.
+ The old node splits its space in two halves, and gives one part to the new node.
+
+Routing tables in CAN consists of all nodes adjacent to the local node's index space,
+ mostly two for each dimension of the hyperspace, and routing chooses the neighbor in a node's
+ routing table with the smallest distance to the target index, or simply a node that is
+ closer in some dimension. This makes up for a
+ hop-count of $(d/4)\times N^{1/d}$ (equivalent to $O(\sqrt[d]{N})$), with $2\times{}d$
+ neighbors ($O(1)$).
+
+% \subsubsection{Butterfly}
+% \label{theory:Geometry:Butterfly}
+% 
+% {\bf TODO: \em Distance, Routing Efficiency. Er kanskje en hybrid model? Ring + Networked.
+%  FIGURE! $\Rightarrow$ Hybrid? }
+% 
+% The first P2P systems like Gnutella\cite{gnutella-homepage} and Kazaa\cite{kazaa-homepage}
+%  are network based systems with a modified flooding algorithm for file search. This model
+%  is \emph{unstructured}, and will in many cases miss most of the possible hits around the
+%  network because of timeouts, concurrent messages, and the sheer distance in overlay hops.
+% 
+% Viceroy\cite{malkhi-02-viceroy,naor-03-simple} implements a multi-level system of nodes,
+%  which is organized as a global simple ring, a ring for each level, and links between
+%  higher and lower level nodes "close by". The butterfly model has the property of being
+%  a constant degree DHT yet employing an $O(\mathrm{log\ }N)$ hop-count on lookups. The
+%  cost of this efficiency is a non-beneficial constant multiplier of the
+%  hop-count\cite{gummadi-03-impact-geometry}.
+% 
+% It can be argued that the Butterfly is a hybrid Network and Ring model, which is true to
+%  some degree, but is separated because of its special features.
+
+\subsubsection{Hybrid}
+\label{theory:Geometry:Hybrid}
+
+It is argued which geometry is better in various aspects [see most references], but
+ by using both consistent hashing with successor nodes, and a Plaxton scheme routing
+ table, Pastry gains both the properties of the ring and
+ tree geometries\cite{rowston-01-storage-past}. This is simply called the \emph{hybrid}
+ geometry\cite{gummadi-03-impact-geometry}.
+
+Pastry holds a three part neighbor set. The \emph{leaf set} is a set of successors and
+ predecessors like the successor and predecessor lists in Chord, a Plaxton scheme
+ \emph{routing table} (called Plaxton mesh), and a \emph{neighborhood set}.
+ The leaf set ensures correct routing of messages to the closest nodes both ways in the ring,
+ and the routing table creates a proximity aware routing table and achieving
+ a hop-count of $\mathrm{log}_{2^b}N$ ($O(\mathrm{log\ }N)$), with a \emph{fill grade} of approximately
+ $\mathrm{log}_{2^b}N$ for each routing table column (see Section \ref{theory:PlaxtonScheme}).
+
+Bamboo is partly based on Pastry\cite{bamboo-homepage,rhea-04-handling-churn}, and
+ also uses a hybrid ring and tree geometry DHT.
+
+
+\subsection{Distributed Lookup}
+\label{theory:Routing}
+
+With a lot of nodes with only partial overview over the set of nodes in the system, a
+ DHT needs certain strategies for lookup to make it not only efficient in terms of
+ hop-count, but also in terms of availability, proximity (latency) and consistency.
+ The common problem is what is making the lookup fast, reliable and secure.
+
+\subsubsection{Iterative vs Recursive Lookup}
+
+There are different approached to how to conduct a node lookup. In case of Chord, the
+ source node looks up the next step in its own routing tables, then ask that node of
+ its \qmark{next step}, and continues in that fashion. This is called \emph{iterative
+ lookup}, as the requesting node iterates to the \qmark{next} node until the successor
+ node is found\cite{rhea-04-handling-churn}.
+
+Iterative routing sends replies to each lookup request with a closer node or until the
+ correct node is reached. This produces up $h\times 2$ message transfers,
+ where $h$ is the hop count.
+
+Recursive routing is closer to the description of the routing theory itself. Each
+ message that is not bound for the local node is forwarded to the known neighbor that is
+ closer to the target index and is forwarded and reprocessed there.
+ This scheme uses less message transfers than iterative routing ($h+1$), thus
+ giving less latency, but might give greater latency penalties on failures.
+
+Two of the systems compared in Rhea et al\cite{rhea-04-handling-churn} are Chord and Bamboo. Chord
+ is described to use \emph{iterative} routing, versus Bamboo that uses \emph{recursive}.
+ The difference between iterative and recursive lookup is shown in Figure
+ \ref{fig:Recursive+Iterative-Routing}.
+
+\begin{figure}[htp] % Figure: Recursive vs. Iterative Routing.
+\begin{center}
+\subfigure[Recursive Routing]{\label{fig:Recursive-Routing}
+\epsfig{file=figures/Lookup-Recursive.eps,width=.4\linewidth}}
+\subfigure[Iterative Routing]{\label{fig:Iterative-Routing}
+\epsfig{file=figures/Lookup-Iterative.eps,width=.4\linewidth}}
+\parbox{.9\linewidth}{\small
+With recursive routing the message is forwarded from node to node each time to the
+ neighbor of the \emph{current} node that is closest to the target index. Iterative
+ routing first looks up the target node, and then sends the message there. Recursive
+ routing uses $h+1$\footnote{$h$ is the hop count of the routing from A to C in the
+ case of this figure.} message transfers to send the message and iterative routing
+ uses $h\times 2$ transfers.
+}
+\caption{Iterative and Recursive routing}\label{fig:Recursive+Iterative-Routing}
+\end{center}
+\end{figure}
+
+
+\subsubsection{Timeout Calculation on Lookup Messages}
+\label{theory:Routing:Timeout}
+
+Rhea et al\cite{rhea-04-handling-churn} argues that one of the most significant factors
+ in lookup latency is the timeout calculation for each lookup messages. Each time a node
+ sends a lookup message, it must wait for a reply message, and if the message don't
+ arrive, the lookup message must either be resent, or aborted. If the timeout is too short,
+ many successfull lookup messages will time out, and be unnecessary duplicated; and a too
+ long timeout will result in lot of time wasted when the message is lost.
+
+Using fixed timeouts does not take into account different loads and network congestion,
+ and the distance between computers on the Internet.
+
+Chord uses a virtual coordinate system for calculating timeouts\cite{rhea-04-handling-churn}.
+ The Vivaldi coordinate system uses an estimated round-trip time ($v$) and an average error
+ rate($\alpha$), then applies it to the formula $ RTO = v + 6\times\alpha + 15 $ (ms). The $15$
+ millisecond constant is to avoid unnecessary retransmissions to localhost. RTO stands for
+ round-trip timeout.
+
+Bamboo on the other hand holds a set of average round-trip times for each neighbor, and a
+ variance. This is the same as for TCP message timeout calculation, hence called the TCP
+ timeout calculation. When applied to the formula $RTO = AVG + 4\times{}VAR$ it is showed
+ to produce better latency measures during very high churn rates\cite{rhea-04-handling-churn}.
+
+\subsubsection{Proximity Neighbor Selection}
+\label{theory:Routing:Proximity-Neighbors}
+
+When building the routing tables some of the geometries have the possibility to choose
+ which nodes to put
+ there\cite{gummadi-03-impact-geometry,zhao-02-locality-aware,castro-03-proximity}.
+ The property usually used there is the node's proximity. The only hurdle here is how
+ to find the right node to put there, as no node has total overview, often even over its own
+ neighborhood.
+
+The \qmark{perfect} Proximity Neighbor Selection (PNS) algorithm described in
+ \cite{castro-03-proximity} is based on the metrics proposed in
+ \cite{plaxton-97-accessing-nearby}. PNS probes all the possible nodes for each
+ table entry, and selects the most suitable node, and uses that node until a
+ better node is located. This algorithm is mostly theoretical, as it would
+ require the complete knowledge of nodes to choose from for each routing table entry.
+
+There are several methods of acquiring knowledge of low-latency nodes (high proximity)
+ without flooding the DHT with latency probes; including
+ \emph{constrained gossiping}\cite{castro-03-proximity} and
+ \emph{PNS(k)}\cite{gummadi-03-impact-geometry}. Proximity Neighbor Selection has
+ been proved a good improvement for lookup latency
+ \cite{chun-05-impact,rhea-04-handling-churn,dabek-04-designing,castro-03-proximity}.
+
+\paragraph{Constrained Gossiping}
+\emph{(PNS-CG)} 
+Constrained Gossiping is based upon spreading routing table entries on events like node
+ join and failure. When a node joins, it collects routing tables from each of the step
+ while looking up its own location in the DHT. When the node then has joined locally, it
+ sends its routing table to each of the nodes in its own tables, and thus sends
+ \qmark{gossip} about itself, and the nodes that happend to be in its tables. When a node
+ receives a gossip message, it probes the nodes there and the sender to find possible
+ better entries for its tables.
+
+Constrained Gossip as described in \cite{castro-03-proximity} employs a \emph{lazy}
+ gossip protocol on node failure, where failed node entries are ignored, and the lookup
+ requests just sent to a numerically closer node.
+
+This model is quite constrained because it is dependent on churn (node joins, leaves and
+ failures) to spread normal gossip. In order to avoid too little gossip on low churn,
+ the nodes uses a timer, so that if there has been no table changes for a certain period,
+ it will trigger a spread of local knowledge as it is.
+
+\paragraph{PNS(k)}\cite{gummadi-03-impact-geometry}
+PNS(k) is a Proximity Neighbor Selection Algorithm that uses random sampling. The name
+ derives from that it always selects a group of $k$ consecutive nodes starting with the
+ first node in the subset to select from. If one of the $k$ nodes has a better
+ proximity rate than the current entry, then it is substituted.
+
+\paragraph{Local Convergence}
+
+With a good PNS implementation there has been shown that messages from topologically
+ close nodes that wants to route messages to the same \qmark{remote} node will
+ \emph{converge} and eventually be routed through a common node close to the source \emph{group}\cite{gummadi-03-impact-geometry,castro-03-proximity} of nodes.
+
+This is called \emph{Local Convergence} or \emph{Locality Routing Convergence}, and
+ can be exploited to locate replicas close to nodes that use them, and still minimize
+ the number of replicas. This is also some of the effect used in the Plaxton scheme\cite{plaxton-97-accessing-nearby} (see Section \ref{theory:PlaxtonScheme}).
+
+\subsubsection{Proximity Routing Selection}
+\label{theory:Routing:Proximity-Routing}
+
+Another way to enhance routing performance is if a node is able to select among a number
+ of \emph{equally valid} routing options. Equally valid means that a choice does not hamper
+ the hop-count or distance resulted in any significant way compared with the other choices.
+
+The hyperspace geometry can employ a Proximity Routing Selection (PRS)
+ algorithm\cite{gummadi-03-impact-geometry} that
+ finds the dimension most suitable for \emph{fixing} by choosing the closest node
+ (by proximity) that is closer to the target (by distance). It can do this properly
+ because unless the target node is in the routing table of the source, there are approximately
+ $n$ nodes with the same hop-count ($n$) to the target. If for each step in the routing the
+ closest node is chosen, then the probability of unnecessary long jumps is reduced to
+ a minimum.
+
+
+
+
+\subsection{Security}
+\label{theory:Security}
+
+Security is a serious issue for all distributed systems. In case of a node that
+ behaves inconsistent with
+ the protocols of the DHT or has malicious intends; what are the problems, and what can
+ be done about it. Sit and Morris considers some issues in \cite{sit-02-security},
+ which will be discussed here.
+ 
+\subsubsection{Routing Attacks}
+
+One of the (sometimes) simplest attack on DHTs is routing attacks. A node may intercept
+ a routing request, and give a wrong response to the lookup source. This attack can do
+ three things; firstly it can pretend that data (possibly) existing in the DHT is not there;
+ claim ownership of the index and give false data; and send the requests to faulty or
+ malicious nodes. But if a node wants to alter the result of routing requests in a DHT, there are
+ measures the system can take in order to prevent it.
+
+To prevent a node from claiming ownership to an index the correlation between index and
+ owner should be verifiable. If a node claims to be owning an index, but the index is
+ determined to be \qmark{too far} from the claimer, then it can be dismissed. In Chord
+ this is quite hard to prevent as usually the nodes are so far from the lookup source
+ that it cannot check it securely against any known threshold.
+
+Another measure is the use of trust. A trusted node is a node that is consistently
+ giving sound lookup results, and is keeping its share of the storage load of the DHT.
+ This can only be measured statistically, as the \qmark{soundness} of a lookup response
+ can be hard to calculate.
+
+In case of \emph{iterative} lookup, a node can monitor the progress of a lookup, and
+ then easily detect hops that doesn't improve the routing progress or does not follow
+ consistent behavior. And nodes that
+ send unhelpful routing results can be marked as \qmark{untrusted}.
+
+Sadly many of these measurements can be avoided if the nodes can choose their own
+ node IDs, as in CAN\cite{sit-02-security}. If the node ID is determined by some
+ verifiable value like a trusted certificate, or from a hash of the node's location (like
+ \qstring{IP:port}), the nodes themself cannot pretend to be anywhere else then
+ where they are.
+
+\subsubsection{Incorrect Routing Updates}
+
+In some systems routing updates are done by gossip\cite{maymounkov-02-kademlia}
+(nodes push information about them selves and their routing tables out to other nodes).
+ In that case a malicious node can send incorrect
+ table updates around the system, and can direct routing to other malicious nodes or
+ to bogus or overloaded nodes.
+
+An effective countermeasure against incorrect routing updates is to be able to verify
+ the table updates, either
+ by certificates, verifiable IDs by hashing, or by probing the contents before altering the local
+ routing tables.
+
+\subsubsection{Partitioning}
+
+A quite subtle attack is to be able to \qmark{snatch} new nodes that join the DHT into
+ a separate distributed hash table. One can even in some cases build a parallell
+ network which resembles
+ the original with cross-over nodes (malicious nodes that reroutes joins to its own DHT),
+ and replication of data from the original DHT to hide the existence of parallellism.
+
+The most effective measure against this is to have verifiable addresses and certificates
+ verifying the membership of nodes in the DHT. This requires that some trusted part
+ exist that can issue certificates for joining nodes, and be able to monitor the network
+ for malicious activity. This may easily become a bigger hazard against using it than the
+ security it provides.
+
+Another measure is to use random queries to verify lookup behavior. This doesn't
+ prevent the nodes from behaving malicious, but merely detects it. The reason for using
+ random queries is that it should not be possible to differentiate between a test
+ lookup and a join related lookup.
+
+\subsubsection{Data Storage}
+
+Attacks can also be done against the data integrity of the DHT. This can be done in many
+ ways; including fake writes or removes, interrupting replication procedures etc. In the
+ case of preventing fake writes and removes, data ownership has to be known and managed,
+ and only authorized nodes or users can modify or remove the data.
+
+Replication protocols can be made quite inefficient if the replicas are not verifiable;
+ meaning that the data can be cross-checked against a signature and a certificate. If all
+ stored data is tagged with its owner, and signed, all nodes doing a read operation can
+ check the result's signature against the certificate of the data owner.
+
+There are other security considerations, but those will not be discussed here, and many of
+these are common with other distributed systems.
+
+
+
+\subsection{Churn}
+\label{theory:Churn}
+
+Churn is a way to describe the constant joining and leaving of nodes in a living
+ distributed hash table. An example of churn rates from file sharing applications,
+ nodes often stay from a few minutes up to an hour or more\cite{rhea-04-handling-churn}.
+
+Churn brings in many problems and most obvious is that the state of the DHT is not
+ \qmark{ideal}\cite{liben-nowell-02-observations}. An ideal state of a DHT can be
+ described with that all nodes in the DHT have a consistent view over its neighbors,
+ that is contained in its routing tables. If routing tables go \qmark{out of date},
+ it may create problems of inconsistent or failed routing.
+
+\subsubsection{Measurements of Churn}
+
+\begin{table}[htp]
+\centering
+\begin{tabular}{cc}
+
+\begin{tabular}{l|c|c}
+First Author & System Observed   & Session Time \\ \hline
+Saroiu       & Gnutella, Napster & $50\%\leq60$ min.  \\
+Chu          & Gnutella, Napster & $31\%\leq10$ min.  \\
+Sen          & FastTrack         & $50\%\leq 1$ min.  \\
+Bhagwan      & Overnet           & $50\%\leq60$ min.  \\
+Gummadi      & Kazaa             & $50\%\leq2.4$ min. \\
+\end{tabular}
+
+&
+
+\parbox{.34\linewidth}{\small
+  Different systems have showed different average session
+   times. The shortest is that of \emph{FastTrack} with half of the
+   observed nodes staying no longer than $1$
+   minute\cite{rhea-04-handling-churn}.
+
+}
+\end{tabular}
+
+\caption{Observed Session Times}
+\end{table}
+
+Churn is a complex field. Nodes comes and goes, but to make a scientific study of the
+ effects of churn, both the churn and the effects needs to be measured in a
+ consistent way. There are several approaches, and some are discussed here.
+
+Churn may be measured in session time, as each node's lifetime is often divided in sessions
+ separated with minutes if not hours. Rhea et al argues that lifetime is not usable for
+ measuring churn, as the \qmark{unavailability} of a node is often larger than its
+ availability. Common availability is around $30\%$\cite{rhea-04-handling-churn}, and of
+ a lifetime of days that can be many hours offline\cite{liben-nowell-02-observations}
+ between short sessions on-line.
+
+Rhea at al uses a Poisson process to describe the event
+ rate of the DHT, and where the \qmark{event rate $\lambda$ corresponds to a median
+ inter-event rate of $\mathrm{ln}\frac{2}{\lambda}$}\cite{rhea-04-handling-churn}.
+ This can be used to calculate
+ the median node session time of $ t_{med} = N\times\mathrm{ln}\frac{2}{\lambda} $.
+ With this median session time, we can construct a churn rate with realistic variation.
+
+It is also shown that the behavior and performance of a DHT can be calculated as a
+ result of a function of the three states of neighbor links, correct, wrong and failed,
+ and a set of parameters describing the problem; the churn rate, stabilization rate and
+ scale\cite{krishnamurthy-05-statistical}. Krishnamurthy et al showed that these
+ calculations can be quite correct, deviating from simulated results by a fraction.
+
+\paragraph{Half-Life}
+Another measure used in \cite{liben-nowell-02-observations} is the half life at time $t$.
+ The half life is the smaller of the time it takes for a DHT of scale $N$ to add
+ additional $N$ nodes at time $t$, and the time it takes for $N/2$ nodes to leave the DHT
+ at time $t$. The first is called the doubling time, and the latter the halving time if
+ the DHT at time $t$.
+
+The half life of the DHT is used as comparison for various events that occurs in a DHT,
+ and what effect they have on the DHT, or if the DHT can handle the events.
+
+\paragraph{Static Resilience}
+Static Resilience is a way to explore the effects of churn without looking at the
+ stabilization protocols\cite{gummadi-03-impact-geometry}. There is always a time delay
+ from nodes die until the routing tables all over the DHT are updated to accommodate
+ for the change.
+
+Static Resilience is then not a \emph{measurement} of churn per se, but is used for
+ measuring a system's performance during churn before its stabilizing algorithms have
+ been able to repair the routing tables.
+
+\subsubsection{Effects of Churn}
+
+Some of the effects of churn is;
+ increasing lookup latency because nodes may be forced to choose imperfect routing
+ options\cite{li-04-comparing-performance},
+ and in worst case being unable to make routing progress at all making them time out;
+ and for the same reason the average hop count increases with churn;
+ and possibly giving inconsistent lookup results\cite{rhea-04-handling-churn}.
+
+These are in general \qmark{small} churn problems, with that they can be avoided by
+ altering the algorithms and protocols surrounding the geometry. Some \qmark{bigger}
+ problems can be described as having a \emph{bad state}. Such states are
+ described by having a set of nodes, each with seemingly valid routing tables, but that
+ does still not follow the \qmark{rules} of the geometry.
+
+One example of a \emph{bad state} of a ring geometry DHT is the double
+ ring\cite{rhea-04-handling-churn}. Each node in the ring has a valid successor, but
+ when following the ring at least two rounds are needed to return to the starting node.
+ Rhea et al called this a \emph{weakly stable} ring.
+
+When comparing the performance of DHTs under churn, it is important to find the best
+ cost-performance combination. In order to do this all combinations of preferences or
+ settings of the DHT is tested, and then the \emph{convex hull} of the testing is used
+ as the cost-performance graph \cite{li-04-comparing-performance}.
+
+\begin{figure}[htp]
+\centering
+\begin{tabular}{cc}
+\parbox{.4\linewidth}{
+  \epsfig{file=figures/Convex-Hull.eps,width=.97\linewidth}}
+&
+\parbox{.47\linewidth}{\small
+  The convex hull is the line of best performances related to lookup or routing
+   latency and bandwith usage. Bandwith is measured in average bps per node, and
+   latency in average lookup roundtrip. Each cross represents a unique combination
+   of settings, although this figure is \emph{not} based on a real DHT, settings
+   or real numbers. See Li et al\cite{li-04-comparing-performance} for correct figures.
+
+  The convex hull can be used to find optimized settings, or to measure what specific
+   options or settings do to the efficiency of a DHT during various churn rates.
+}
+\end{tabular}
+\caption{The Convex Hull}\label{fig:Convex-Hull}
+\end{figure}
+
+\subsubsection{Availability}
+
+The first thought of problems with churn in DHTs is availability. Data stored in the DHT
+ that is supposed to stay there bust be saved, and in the case of other distributed systems
+ this is done by replication. Most DHTs use some form of replication. We
+ will only summarize the different replication methods here.
+
+\paragraph{Realities}
+CAN is a DHT using a \emph{hyperspace} geometry, and with availability in mind
+ they let each node put it self in a set of \emph{realities}\cite{ratnasamy-01-CAN}.
+ The nodes places
+ themself in different positions in different realities as to cover as much as
+ possible \emph{area} as possible. When some data is stored in CAN it is stored
+ in \emph{all} realities on the same index (coordinates), which hopefully is
+ different nodes for each reality. Lookup from a node is done with choosing the
+ reality where the node is \emph{closer} to the index sought for, and use
+ standard routing there.
+
+\paragraph{Hashgroups}
+In order to avoid the need to manage different \emph{realities}, Pastry (or PAST) uses
+ a collection of hash-functions called a \emph{hashgroup}\cite{rowston-01-storage-past}.
+ If the hash functions have good spread and distribution (load balancing and randomness),
+ each data item should should be distributed over a set of nodes up to the number of
+ funcitons used. This does not guarantee that the data items are replicated, but gives a very good probability they are.
+
+\paragraph{Sanding}
+Since there is problem in finding enough really good hash algorithms, and some may be
+ not very cost effective, Tapestry manages a set of sands instead of
+ hash functions\cite{zhao-01-tapestry}. Each tapestry chooses a set of sands prior
+ to starting the DHT, and the data item key is sanded with each sand generating a
+ set of indices for each item, before storing them at each index owner. With a good
+ hash algorithm this gives similar spread as using hashgroups, but
+ with less management, and the choice to use a single effective hash algorithm.
+
+\paragraph{Successor List}
+Chord originally used a set of successors for replicating the data
+ items\cite{stoica-01-chord}.
+ Chord uses a set of successive neighbors to a list, and use the first
+ available successor if the original is not available. This adds a set of
+ replicas equal to the number of successors in each node's successor list.
+ As long as there is a live node in Chord with a replica of the sought for
+ data item (that was in the original owner's successor list), the item is
+ available.
+
+\paragraph{Plaxton Replication}
+The replication scheme proposed by Plaxton et al\cite{plaxton-97-accessing-nearby} is
+ also used in Kademlia. This approach is described in Section \ref{theory:PlaxtonScheme} in
+ some detail.
+
+\subsubsection{Factors and Measures}
+
+There are different effects of churn, and most factors can be countered in some way.
+ We will summarize some of the factors and measures against them.
+
+\paragraph{Update Scheduling}
+
+When choosing an appropriate update scheduling for the routing tables, there are some
+ important considerations. The bandwidth use, in the case of high churn
+ rates, a reactive update cycle may create a lot of update messages, and this may in
+ turn result in a \emph{positive feedback cycle}. A positive feedback cycle is a
+ situation where a node has a low bandwith limit, and when bombarded with update messages
+ will appear to be offline by some nodes, and the limit is met, and message loss rate
+ rise significantly, which will try to update all its neighbors
+ with even more messages. Some time later (not by much, may be from a few milliseconds
+ to minutes) the nodes are not as loaded with update messages, and reappear (as
+ communication with other nodes are are successfull), it will again get the amount
+ of messages forcing it offline.
+
+\emph{Positive Feedback Cycle} is a specific effect of Reactive Recovery such as used in
+ Chord\cite{rhea-04-handling-churn}. Another update cycle is to use \emph{periodic recovery}.
+ In this situation each nodes broadcases its table states (or changes) to its neighbors,
+ or requests its neighbors of status changes. This method creates a stable amount
+ of update messages, and thus avoids the positive feedback cycle.
+
+A third way to schedule updates is to do incremental updates. Incremental updates only
+ take one step, or a constant number of steps toward stable routing tables.
+ This can be combined with periodic updates, which will put a limit of update messages
+ for each cycle. On the other hand, if there has been a set of changes
+ between two cycles, there may be
+ table changes that are not optimal still in routing tables, until more cycles are run.
+
+\paragraph{Successive Neighbors}
+Some DHTs use \emph{successive neighbors}, which is a set of consecutive nodes that
+ follow the \emph{local} node after a function of \emph{global order}.
+ Not all geometries support the use of successive neighbors, and the effect
+ can be shown in terms of stability and consistency at very high churn
+ rates\cite{gummadi-03-impact-geometry}.
+
+Successive neighbors are shown to have a positive impact on the resilience of
+ Distributed Hash Tables. And although not all geometries support successive neighbors
+ by definition, some have been adapted to support them for the sake of stability.
+
+In the case of node failures (link or otherwise)\cite{li-04-comparing-performance},
+ shows that using a larger number of consecutive successors improves stability
+ dramatically, although having a negative impact on table maintenance messages and
+ bandwidth use. When studies through static resilience (Gummadi et
+ al\cite{gummadi-03-impact-geometry}) show that with Chord, successive neighbors generates
+ a considerable amount of update messages, bot doesn't improve lookup latency
+ significantly.
+
+\paragraph{Gossiping}
+Kademlia uses a \qmark{passive} stabilizing protocol, which it calls \emph{gossiping}.
+ The \emph{k-buckets} holds a set of nodes, that each are collected from lookup messages.
+ But this is not always not sufficient for keeping a set of updated node entries when
+ some may stop responding, or the network topology changes.
+
+The $k$-bucket keeps $k$ nodes in a least recently seen (LRS) sorted list.
+ The special feature about Kademlia is that it always keeps the \emph{oldest}
+ known nodes in the $k$-bucket when replacing entries.
+ This stems from the propability of \emph{continuous uptime}. If a node has been
+ on-line for a certain time, the propability for it to still be on-line $60$
+ minutes longer (with the same session) rises consistently with
+ \emph{continuous uptime}.
+
+The update protocol used in Kademlia is to use lookups and other messages received
+ through the \qmark{ordinary} channels to update the routing table. If there are
+ nodes sending a message not in the appropriate $k$-bucket,
+ the least recently seen node is probed
+ for activity, and a negative response evicts it from the $k$-bucket, and the new node
+ is inserted as the most recently seen node. A positive respond moves the old node to the most
+ recently seen node for that bucket, and the new node is discarded.
+
+\subsubsection{Consistency}
+
+Liben-Novell et al talk about the problems that may lead to inconsistent behavior
+ of a ring network \cite{liben-nowell-02-observations}. There are many different
+ problems related to the Chord network that leads to inconsistent behavior in the
+ ring.
+
+Liben-Nowell et al describes the \emph{ring-like} state, where there is a
+ core ring where the successor links construct a single \qmark{circle} around the
+ index ring, but there may be appendages of nodes which successor links points to
+ a node on the core ring, or to a node \emph{closer} to the core ring in successor
+ hops. The ring-like state is called a \emph{soft stable} state of Chord, as if
+ each node not on the core ring has its successor on on the core ring, it will
+ produce consistent lookups.
+
+Another Example is the \emph{double ring} which is the state where if we follow
+ the successor links we can traverse the ring at least twice and only encounter each
+ node once. The double ring may for each node seem stable, but lookups will by a 
+ probability of about $2$ to $1$ return a \emph{false} positive result.
+
+Both of the cases from \cite{liben-nowell-02-observations} have the property that
+ they lead to inconsistent behavior in lookup and routing. Inconsistency is
+ defined as $u.find\_successor(q)\neq{}v.find\_successor(q)$ here for some two nodes
+ $u$ and $v$ looking for the index $q$.
+
+\paragraph{Definitions}
+Consistency seems to be a fairly little studied field of Distributed Hash Tables.
+ For this reason consistency will have to be explained and discussed further in
+ Section \ref{sec:ProblemDescription}. But the topic has also been raised in the
+ Bamboo F.A.Q.\cite{bamboo-homepage}, where the Bamboo consistency rate is compared
+ to other DHTs, though the definition of consistency is not discussed in
+ \cite{rhea-04-handling-churn} nor \cite{sit-02-security}, although mentioning it,
+ and showing a way to calculate it.
+
+Rhea et al uses a simple definition of what they call a consistent lookup. They
+ make bursts of simultaneous lookups for the exact same index (key), and treats
+ the result as a \qmark{vote}. A majority for a node is called a consistent result,
+ otherwise it is inconsistent. This may be a too volatile definition, as it will
+ contain both false negatives (there will naturally be a possibility of different
+ lookup results if the sought for key just changed owner during the lookup), and
+ false positives (if there are series of identical lookups, they may give the
+ same wrong results, making it appear to be consistent although it is not).
+
+Despite this Krishnamurthy\cite{krishnamurthy-05-statistical} defines consistent
+ lookup in terms of the node's routing tables, more specifically its immediate
+ successor ($s_1$).
+ They stated that if the immediate successor is alive and correct or not alive, it
+ will generate consistent lookups (correct or failing), and only if $s_1$ is alive
+ but incorrect will it generate inconsistent lookups. They analyzed the Chord
+ protocol to find the states that produced these changes, and could thus calculate
+ expected consistency rates for a given churn rate.

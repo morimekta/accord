@@ -1,0 +1,221 @@
+\begin{thebibliography}{10}
+
+\bibitem{gnutella-homepage}
+{\em Gnutella.com}.
+\newblock Web page.
+\newblock {URL: http://www.gnutella.org/}.
+
+\bibitem{jabber-homepage}
+{\em Jabber: Open Instant Messaging and a Whole Lot More, Powered by XMPP}.
+\newblock Web page.
+\newblock {URL: http://www.jabber.org/}.
+
+\bibitem{bamboo-homepage}
+{\em The Bamboo Distributed Hash Table}.
+\newblock Web page.
+\newblock {URL: http://bamboo-dht.org/}.
+
+\bibitem{napster-new-homepage}
+{\em Napster - All the music you want. Any way you want it.}
+\newblock Web page.
+\newblock {URL: http://www.napster.com/}.
+
+\bibitem{napster-legal-homepage}
+{\em Find\-Law Legal News: Special Cover\-age: Nap\-ster}.
+\newblock Web page and article collection.
+\newblock {URL: http://news.findlaw.com/legalnews/lit/napster/}.
+
+\bibitem{kazaa-homepage}
+{\em Kazaa}.
+\newblock Web page.
+\newblock {URL: http://www.kazaa.com/}.
+
+\bibitem{devine-93-design}
+Robert Devine.
+\newblock Design and implementation of {DDH}: A distributed dynamic hashing
+  algorithm.
+\newblock In {\em {Proceedings of the 4th International Conference on
+  Foundations of Data Organization and Algorithms (FODO '93)}}, October 1993.
+
+\bibitem{plaxton-97-accessing-nearby}
+C.~Greg Plaxton, Rajmohan Rajaraman, and Andrea~W. Richa.
+\newblock Accessing nearby copies of replicated objects in a distributed
+  environment.
+\newblock In {\em {ACM Symposium on Parallel Algorithms and Architectures (SPAA
+  '97)}}, pages 311--320, June 1997.
+
+\bibitem{zhao-01-tapestry}
+Ben~Y. Zhao, John~D. Kubiatowicz, and Anthony~D. Joseph.
+\newblock Tapestry: An infrastructure for fault-tolerant wide-area location and
+  routing.
+\newblock Technical Report UCB/CSD-01-1141, University of California at
+  Berkeley, {Berkeley, CA, USA}, April 2001.
+
+\bibitem{karger-97-consistent-hashing}
+David Karger, Eric Lehman, Tom Leighton, Mathhew Levine, Daniel Lewin, and Rina
+  Panigrahy.
+\newblock Consistent hashing and random trees: Distributed caching protocols
+  for relieving hot spots on the world wide web.
+\newblock In {\em {ACM Symposium on Theory of Computing (STOC '97)}}, pages
+  654--663, May 1997.
+
+\bibitem{hayes-86-microprocessor}
+{John P Hayes and Trevor Mudge and Quentin F Stout and Stephen Colley and John
+  Palmer}.
+\newblock {A microprocessor-based hypercube supercomputer}.
+\newblock {\em {IEEE Micro}}, {6}({5}):{6--17}, 1986.
+
+\bibitem{balakrishnan-03-looking}
+Hari Balakrishnan, M.~Frans Kaashoek, David Karger, Robert Morris, and Ion
+  Stoica.
+\newblock {Looking up Data in P2P Systems}.
+\newblock {\em {Communications of the ACM, Vol 46, No. 2}}, February 2003.
+
+\bibitem{ratnasamy-01-CAN}
+Sylvia Ratnasamy, Paul Francis, Mark Handley, and Richard Karp.
+\newblock A scalable content-addressable network.
+\newblock In {\em {Proceedings of ACM conference on applications, technologies,
+  architectures, and protocols for computer communications (SIGCOMM '01)}},
+  August 2001.
+
+\bibitem{chord-homepage}
+{\em The Chord/DHash Project}.
+\newblock Web page.
+\newblock {URL: http://pdos.csail.mit.edu/chord/}.
+
+\bibitem{stoica-01-chord}
+I.~Stoica, R.~Morris, D.~Karger, M.~Kaashoek, and H.~Balakrishnan.
+\newblock Chord: A scalable peer-to-peer lookup protocol for internet
+  applications.
+\newblock In {\em {Proceedings of ACM conference on applications, technologies,
+  architectures, and protocols for computer communications (SIGCOMM '01)}},
+  August 2001.
+
+\bibitem{kaashoek-03-koorde}
+Frans Kaashoek and David~R. Karger.
+\newblock Koorde: A simple degree-optimal distributed hash table.
+\newblock In {\em {Proceedings of the 2nd International Workshop on
+  Peer-to-Peer Systems (IPTPS '03)}}, February 2003.
+
+\bibitem{manku-03-symphony}
+G.~Manku, M.~Bawa, and P.~Raghavan.
+\newblock Symphony: Distributed hashing in a small world.
+\newblock In {\em {Proceedings of the 4th USENIX Symposium on Internet
+  Technologies and Systems (USITS '03)}.}, March 2003.
+
+\bibitem{rowston-01-storage-past}
+{Peter Druschel and Antony Rowstron}.
+\newblock {PAST: A large-scale, persistent peer-to-peer storage utility}.
+\newblock In {\em {Proceedings of the 8th {W}orkshop on {H}ot {T}opics in
+  {O}perating {S}ystems ({HotOS-VIII})}}, May 2001.
+
+\bibitem{zhao-02-brocade}
+Ben~Y. Zhao, Yitao Duan, Ling Huang, Anthony~D. Joseph, and John~D.
+  Kubiatowicz.
+\newblock {Brocade: Landmark Routing on Overlay Networks}.
+\newblock In {\em {Proceedings of the 1st International Workshop on
+  Peer-to-Peer Systems (IPTPS '02)}}, March 2002.
+
+\bibitem{maymounkov-02-kademlia}
+P.~Maymounkov and D.~Mazieres.
+\newblock Kademlia: A peer-to-peer information system based on the xor metric.
+\newblock In {\em {Proceedings of the 1st International Workshop on
+  Peer-to-Peer Systems (IPTPS '02)}}, March 2002.
+
+\bibitem{zhuang-05-failure-detection}
+Shelley Zhuang, Dennis Geels, Ion Stoica, and Randy Katz.
+\newblock {On Failure Detection Algorithms in Overlay Networks}.
+\newblock In {\em {IEEE Community Society 24th Annual Conference (INFOCOM
+  '05)}}, March 2005.
+
+\bibitem{gummadi-03-impact-geometry}
+K.~Gummadi, R.~Gummadi, S.~Gribble, S.~Ratnasamy, S.~Shenker, and I.~Stoika.
+\newblock The impact of {DHT} routing geometry on resilience and proximity.
+\newblock In {\em Proceedings of ACM - Data Communications Festival (SIGCOMM
+  '03)}, August 2003.
+
+\bibitem{rhea-04-handling-churn}
+Sean Rhea, Dennis Geels, Timothy Roscoe, and John Kubiatowizc.
+\newblock Handling churn in a {DHT}.
+\newblock In {\em Proceedings of the {USENIX} Annual Technical Conference},
+  June 2004.
+
+\bibitem{zhao-02-locality-aware}
+Anthony D.~Joseph Ben Y.~Zhao and John~D. Kubiatowicz.
+\newblock Locality-aware mechanisms for large-scale networks.
+\newblock In {\em {Workshop on Future Directions in Distributed Computing
+  (FuDiCo)}}, June 2002.
+
+\bibitem{castro-03-proximity}
+M.~Castro, P.~Druschel, Y.~C. Hu, and A.~Rowstron.
+\newblock Proximity neighbor selection in tree-based structured peer-to-peer
+  overlays.
+\newblock Technical Report MSR-TR-2003-52, Microsoft Research, {Redmond, WA,
+  USA}, August 2003.
+
+\bibitem{chun-05-impact}
+Byung-Gon Chun, Ben~Y. Zhao, and John~D. Kubiatowicz.
+\newblock {Impact of Neighbor Selection on Performance and Resilience of
+  Structured P2P Networks}.
+\newblock In {\em {Proceedings of the 4th International Symposium on
+  Peer-to-Peer Systems (IPTPS '05)}}, February 2005.
+
+\bibitem{dabek-04-designing}
+F.~Dabek, J.~Li, E.~Sit, J.~Robertson, M.~Kaashoek, and R.~Morris.
+\newblock {Designing a DHT for low latency and high throughput}.
+\newblock In {\em Proceedings of the 1st {S}ymposium on {N}etworked {S}ystems
+  {D}esign and {I}mplementation (NSDI '04)}, March 2004.
+
+\bibitem{sit-02-security}
+Emil Sit and Robert Morris.
+\newblock Security considerations for peer-to-peer distributed hash tables.
+\newblock In {\em {Proceedings of the 1st International Workshop on
+  Peer-to-Peer Systems (IPTPS '02)}}, March 2002.
+
+\bibitem{liben-nowell-02-observations}
+David Liben-Nowell, Hari Balakrishnan, and David Karger.
+\newblock Observations on the dynamic evolution of peer-to-peer networks.
+\newblock In {\em {Proceedings of the 1st International Workshop on
+  Peer-to-Peer Systems (IPTPS '02)}}, March 2002.
+
+\bibitem{krishnamurthy-05-statistical}
+Supriya Krishnamurthy, Sameh E-Ansary, Eirik Aurell, and Seif Haridi.
+\newblock {A Statistical Theory of Chord under Churn}.
+\newblock In {\em {Proceedings of the 4th International Symposium on
+  Peer-to-Peer Systems (IPTPS '05)}}, February 2005.
+
+\bibitem{li-04-comparing-performance}
+J.~Li, J.~Stribling, T.~Gil, R.~Morris, and F.~Kaashoek.
+\newblock Comparing the performance of distributed hash tables under churn.
+\newblock In {\em Proceedings of the 3rd International Symposium on
+  Peer-to-Peer Systems (IPTPS '04)}, February 2004.
+
+\bibitem{grey-75-consistency-locks}
+J.~N. Grey, R.~A. Lorie, G.~R. Putzolu, and I.~L. Traiger.
+\newblock Granularity of locks and degrees of consistency on shared data bases.
+\newblock In {\em {Proceedings of the 1st International Conference on Very
+  Large Databases}}, pages 25--33, 1975.
+
+\bibitem{oszu-99-podds}
+M.~Tamer $\mathrm{\ddot{O}}$szu and Patrick Valduriez.
+\newblock {\em Principles of Distributed Database Systems}.
+\newblock Prentice Hall, 2nd edition, 1999.
+\newblock ISBN 0-13-659707-6.
+
+\bibitem{sha-1}
+P.~Jones, Motorola, and Cisco Systems.
+\newblock Rfc 3174: Us secure hash algorithm 1 (sha1), September 2001.
+\newblock URL: http://www.ietf.org/rfc/rfc3174.txt.
+
+\bibitem{gupta-04-routing}
+Anjali Gupta, Barbara Liskov, and Rodrigo Rodrigues.
+\newblock Efficient routing for {P}eer-to-{P}eer {O}verlays.
+\newblock In {\em Proceedings of the 1st {S}ymposium on {N}etworked {S}ystems
+  {D}esign and {I}mplementation (NSDI '04)}, March 2004.
+
+\bibitem{udp}
+J.~Postel.
+\newblock Rfc 768: User datagram protocol, August 1980.
+\newblock URL: http://www.ietf.org/rfc/rfc768.txt.
+
+\end{thebibliography}

@@ -1,0 +1,329 @@
+\section{Discussions and Conclusions}
+\label{sec:Conclution}
+\label{sec:Discussion}
+
+\miniquote{
+                                                        A: n. (r$^{oo}$t, rout)\\
+1. A road, course, or way for travel from one place to another.\ \ \ \ \ \ \ \ \\
+                                 2. A customary line of travel.\ \ \ \ \ \ \ \ \\
+                                              B: tr.v. routed, routing, routes \\
+                     1. To send or forward by a specific route.\ \ \ \ \ \ \ \ \\
+        2. To schedule the order of (a sequence of procedures).\ \ \ \ \ \ \ \ \\
+                                                        Dictionary.com/Routing \\
+                                                                             \ \\
+}
+
+The analysis shows that it is theoretically possible to construct a ring geometry
+ DHT that avoids many of the traps of inconsistent routing tables. And the design
+ and implementation of Accord helped develop series of remedies, and clean up
+ the analysis part. The problem of consistency is not solved
+ in general for DHTs, as these remedies
+ and solutions must be adapted for each DHT, and there may be DHTs that can not
+ use some or any of them.
+
+This section discusses the future of this work, and how it fits with the existing
+ DHTs like Chord, Tapestry, Kademlia etcetera. We will also discuss what it really
+ solves and how those solutions can be further developed. We do not claim any of
+ those solutions are final, and this is a discussion of fitness and relevance only.
+
+\subsection{Comparison and Measures}
+
+Our work was made relative to a ring geometry DHT, but there are many design
+ differences between this work and the existing mature DHTs like Chord, Bamboo
+ and Tapestry. If the solutions is to be used for any of the other geometries
+ the solutions must be adapted, not the underlying DHT.
+
+Here we will try to discuss how the solutions might be adapted for two ring
+ geometry DHTs, and then discuss why they cannot be adapted directly for the
+ other geometries.
+
+\subsubsection{Chord}
+
+Chord is the base for most of the algorithms in Accord. Both uses a ring geometry
+ and skiplist-like routing, and both uses asynchronous messages for working
+ with a set of well defined protocols. But
+ since Chord and Accord are so similar; are the solutions as valid for Chord as for
+ Accord?
+
+\paragraph{Validity}
+
+Both Chord and Accord is a ring geometry DHT, although Accord have \qmark{reversed}
+ the ring. So most solutions will work on Chord if predecessors and successors are
+ exchanged. In the case of lookup result validity, one have to make a lookup trace
+ in Chord and Accord and see the similarity.
+
+When a lookup request in Chord (assume recursive lookup) arrives at a host, it is
+ checked for if the node's successor is the index's successor as well, and if so
+ it is the node. In Accord it is always forwarded towards its owner until it's a
+ direct hit. The difference here is that in Chord, the successor link defines
+ the successor's responsibility of indices, and Accord uses the successor to define
+ the local node's responsibility.
+
+This can be further investigated by reversing the Accord ring. This makes it the
+ \emph{predecessor} that defined local ownership, and, like Chord, the successor
+ defines the ownership of it's successor node. If lookups are to be resolved
+ at index's owner, the owner must know its exact responsibility range, and thus
+ having a correct predecessor. This is similar to Chord in every way except two
+ things; responsibility knowledge location (owner node), and lookup replying
+ (from the owner, not its predecessor).
+
+From this it can easily be deducted that the lookup consistency solutions can be
+ adapted from Accord to Chord, and those DHT's that uses the ring geometry.
+
+\paragraph{Predecessor Resolving Join Protocol}
+(PRJP)
+In Accord, the base of the \qmark{join protocol} is the successor link resolving
+ part (see Section \ref{design:mm-protocols}). If adapted for Chord, this becomes a
+ \qmark{predecessor-resolving} join protocol with the successor routing lookup
+ procedure. The novel solution is to swap all predecessors with successors
+ and visa versa in the algorithm shown in Figure \ref{fig:join} and \ref{fig:joinpred}.
+
+\begin{figure}[htp] % Figure: Chord-Consistency discussion.
+\centering
+\subfigure[Possibly Inconsistent Tables?]{\label{fig:Chord-IsInconsistent}
+\epsfig{file=figures/Chord-IsInconsistent.eps,width=.45\linewidth}}
+\subfigure[Consistent Tables in Chord]{\label{fig:Chord-Consistent}
+\epsfig{file=figures/Chord-Consistent.eps,width=.45\linewidth}}
+% - Possibly inconsistent tables ** (OK)
+% - Inconsistent Lookup Trace
+% - 
+\parbox{.95\linewidth}{ \small
+   For Chord this is example of two situation where consistency can be questioned. Figure
+    \ref{fig:Chord-IsInconsistent} shows a state where a node has \qmark{joined}, but
+    will not receive lookup requests and is not assigned index ownership. Figure
+    \ref{fig:Chord-Consistent} shows a situation where a node has \qmark{died} in Chord,
+    lookups are consistent, but fails for the dead node's successor.
+}
+\caption{Consistency in Chord}\label{fig:Chord-Consistency}
+\end{figure}
+
+Figure \ref{fig:Chord-Consistency} shows two scenarios in Chord where the routing tables might be
+ incorrect yet consistent, and seemingly correct, but may be inconsistent; similar to the
+ two situations shown in Figure \ref{fig:incorrect-vs-inconsisten}. The first situation is the
+ state of a part of a Chord ring after a node (the one outside the ring) has \qmark{died}.
+ Since it is difficult to know wether a node is on the ring, as shown in Figure
+ \ref{fig:Chord-IsInconsistent}, Chord needs some protocol to remove this insecurity, which
+ could be the source of its inconsistent lookups.
+
+The same can be argued for Bamboo, Pastry and other DHTs with the ring geometry as bottom line.
+ But tree geometry DHTs are more reliant on what form of distance metric is used, and how
+ this interferes with neighborhood knowledge. If a node in Tapestry doese'nt know any of its two
+ immediate neighbors, it will generate inconsistent lookups, although it can still repair it
+ self by searching for nodes nearby and \emph{backtrack} to the local node. This still does not
+ solve the inconsistency problem.
+
+Since both the \emph{longest prefix} (\emph{XOR}) or \emph{longest suffix} metrics need accurate
+ knowledge about \emph{both} immediate neighbors for guaranteed consistent routing on a
+ local level, the tree geometry needs a different but similar protocol, which in some
+ way guarantees that each neighbor \qmark{gives away} its part of the ownership in a
+ two-part commit protocol. This is not discussed further here, as it requires a
+ thorough analysis of each failure scenario as for the ring model.
+
+\paragraph{Membership}
+
+The notion of membership is looser in Chord than in Accord, and this has the
+ consequence of putting question to what defines membership in Chord? At least two
+ definitions of membership can be made in Chord, but both have flaws as it is.
+
+\begin{enumerate}
+\item \emph{Routing:}\label{enum:Membership-Routing}
+    By defining that being member of the Chord ring is to be
+    part of the cycle\cite{liben-nowell-02-observations}, we make the mistake by
+    that nodes may after some failure be removed from the \emph{cycle}. There is
+    also the problem that a node is still not a member even after completing join,
+    that waits until its predecessors in the cycle updates its successor link. This
+    is a volatile definition.
+\item \emph{Join:}\label{enum:Membership-Join}
+    Another way to define membership in Chord is to say that a node
+    is a full member the moment the join protocol has notified its successor of it
+    being there. This is also problematic, as then routing to the newly joined
+    node will fail until its predecessors in the cycle updates its successor link.
+    This is a stable definition, although it may be too stable.
+\end{enumerate}
+
+Previous studies in Chord have per definition used definition
+ \ref{enum:Membership-Routing}, which does not really reflect the true state of the
+ DHT, but secures a consistent membership state relative to routing. But in order
+ to make membership work \qmark{faster}, we propose to use definition
+ \ref{enum:Membership-Join} and employ a predecessor resolving join protocol (PRJP). This
+ will ensure that membership is activated at time of join, and offer a consistent
+ lookup relevant to that membership definition, and to the consistency definition
+ in Table \ref{tab:consistency-definition} in Section \ref{problem:DefiningConsistency}.
+
+\paragraph{Locking Membership Management}
+
+Both the pure predecessor resolving join protocol (PJRP) and the Chord join protocol
+ have the problem of concurrent joins. If two nodes try to join with the same
+ successor in Chord, or predecessor in Accord, the consistency of the tables are
+ at stake. In Chord this only makes a short term \qmark{eviction} of one of
+ the joined nodes, which will have to rejoin later.
+
+With the PJRP, four tables at three different nodes will have to be updated
+ correctly in order to achieve consistent states at the three consecutive nodes.
+ Like with databases, this can be solved by locking concurrent access to the join
+ procedures, and to avoid dead-locking a global ordering scheme should be used
+ so that the nodes are locked in \emph{the order of the cycle}.
+
+\paragraph{Lookup Protocol in Chord}
+
+When nodes leave in Chord, they just form a \emph{hole} in the ring until the node
+ is evicted from its predecessors successor list. One of the problems lies in that
+ the lookup protocol, if unsuccessful with contacting a certain node, retries the
+ lookup with an \qmark{ignore list} (\cite{chord-homepage}, see source code). which
+ includes the unsuccessful node. The new routing will then try the \emph{next}
+ successor on the same stage as the failed lookup result, which may at this stage
+ have returned (or regained network communication). This adds to the inconsistency
+ rating for Chord specifically.
+
+Firstly Chord needs a lookup protocol that does not generate inconsistency with its
+ own lookup protocol, then it needs a consistent leave protocol, that can evict nodes
+ that don't respond to lookup messages as well as tells of activity (like keep-alive
+ protocols).
+
+\paragraph{Leaving Problems}
+
+The argument of Fail-fast nodes are the exact same for Chord as for Accord. If a node
+ in Chord looses contact with the rest of the ring for a given time period, the
+ rest of the nodes will start removing it from its routing tables, which may cause
+ inconsistency with regard to routing.
+ 
+In order to avoid inconsistency, the successor and predecessor should use the leave
+ protocol as proposed in Section \ref{design:mm-protocols} (\emph{I-Am-Alive}).
+ The commit based leave protocol and the PRJP, Chord should be able to show significantly
+ better consistency ratings. This is a topic for further study, and is not discussed
+ further in this thesis.
+
+Another problem that comes from nodes returning to the ring before they have been
+ completely evicted from the routing tables. In order to avoid this, we propose
+ to make each nodes \emph{fail-fast}. That means they must monitor their own
+ successfull network activity with
+ the ring, and simply shut down if there has been a too long period of inactivity.
+ This was discussed in Section \ref{analysis:SingleLinkFailure}, and will not be
+ discussed further here.
+
+The tree geometry leave protocol may need special adaptations for guaranteeing that
+ the leaving node is not assigned the owner of any index assigned to its neighboring
+ node from the leave and onward. This can be easily done since each routing table change
+ moves a part of the indices from the leaving node to its neighbor on each side.
+ The properties of this depends on the DHT's distance metric,
+ and must be analyzed individually.
+
+\subsubsection{Other Ring geometry DHTs}
+
+Now we know there are measures that can work for Chord, but what about the other
+ ring geometry DHTs? All the proposals in this thesis (discussion) on consistency
+ are shown to work for all ring geometry DHTs that roughly resemble Chord. There is no need
+ for other properties than the successor (or predecessor) based routing, so DHTs
+ like Bamboo and Pastry will be able to benefit as much.
+
+\subsubsection{Non-ring DHTs}
+
+A question then is; can it work for the other geometries. Not without modifications;
+ because
+ many of the proposals are dependent on the successive neighbors and global
+ ordering as used in routing. Tree geometry DHTs can use various adaptations of the
+ protocols, and definitely use the non-protocol specific means proposed in this
+ thesis like fail-fast nodes.
+
+\subsection{Other Observations made in the Thesis}
+
+During the project observations not related to consistency have also been made.
+ These observations are not thoroughly studies or analyzed, although tested
+ for usability and correctness.
+
+\subsubsection{Dynamic Routing Table Preferences}
+
+In the course of the Accord project, it was assumed that the system should not be
+ needed to configure the actual sizes of the routing tables. In order to counter
+ the need for knowledge about a systems scale, we developed some rules (see
+ Section \ref{design:stabilization} and Table \ref{tab:stabilization-rules}) to
+ approximate what is optimally needed as the sizes of these tables. Considerations
+ of optimality quantities were not made, although these were put in as configurable
+ values.
+
+\begin{description}
+\item[min\_succ]
+     Minimum number of successors. Before any fingers are resolved, ensure
+     that this number of consecutive successors are correctly in the routing
+     tables.
+\item[succ\_ratio]
+     Above the number of successors and fingers of \emph{min\_succ}, how many
+     of the additional table entries are to be successors (as opposed to fingers).
+     This can be used to make an increase in the number of successors above
+     \emph{min\_succ} as the number of fingers grows.
+\end{description}
+
+What we found was sound \qmark{stabilization rules} that can determine a set of
+ successors and fingers to optimize the stability vs. efficiency runtime for each
+ node separately.
+
+The rules are not studies beyond the notion of mathematically correctness, and the
+ effect of using such rules in a DHT during churn has not been analyzed, simulated
+ nor tested and measured. The amount of messages generated by this protocol in
+ addition to \emph{normal} network usage is minimal except in the \qmark{minimal}
+ state where the number of successors does not reach \emph{min\_succ}.
+
+The rules are only tested to the degree that they work; e.g. they produce the tables
+ desired for a given state in the DHT.
+
+\subsubsection{Iteration Restricting Arguments in Lookup/Routing}
+
+It has also been observed that it is simple to combine iterative and recursive
+ lookup in a single routing request (see Section \ref{design:lookup}).
+ The studies of lookup during churn have been studying solely the differences
+ between pure iterative and pure recursive lookup, which \emph{could} be not the
+ best options in the world of lookup algorithms.
+
+\subsection{Conclusion}
+
+In this thesis we have shown that active and consistent membership management is
+ a possible way of combating inconsistent lookup. With the algorithms and means shown
+ here related to consistency built into a ring geometry DHT, consistency should be
+ reduced significantly. Not all problems with these protocols have been thoroughly
+ studied, which is a work left for further study.
+
+The case for the protocols show they work with simple testing,
+ and to produce consistent tables
+ both \emph{before} and \emph{after} node join and leave, and analysis show they
+ produce consistent lookups even \emph{during} the join process. These protocols
+ are mathematically described through state machines, and \emph{should} be possible to
+ prove consistent in \emph{all} failure scenarios, but this is left for further study.
+
+\subsection{Further Works}
+
+As the protocols are not actually tested in a live DHT during churn, nor simulated
+ with the DHT simulator bundled with Chord\cite{chord-homepage}, this is a job for
+ further study directly linked to this work. Testing should be done with an
+ implementation of the protocols in a mature DHT to be able to compare results
+ with no-membership-management results for consistency rating, CPU and network cost.
+
+Two candidates for this testing are Bamboo, a tree/ring hybrid geometry DHT, and
+ Chord, a pure ring DHT. Bamboo has the advantage of being a Java implemented
+ DHT, giving the possibility of easier to port. Disadvandages with Bamboo is
+ the network event interface, giving disadvantage to both locking and waiting
+ protocols.
+
+Chord, the other candidate is thread-based, like Accord, but programmed in C++.
+ Chord is also no longer in active development, which makes it a stable platform
+ on which to implement the protocols. But when the Accord project was started, it
+ was partly because of a set of unnecessary dependencies in Chord combined with
+ a not-so-good to missing documentation. Chord is documented good enough to
+ develop \emph{for} Chord, but not enough to develop protocols \emph{in} Chord
+ without a long pre-study of its inner workings.
+
+The effects of the non-protocol means of reducing inconsistency should also be
+ tested or simulated with a live DHT in Churn. Since none of these are dependent
+ on a ring geometry DHT, and often require less modification of the original DHT
+ they should be easier to add to the DHT, and to test or simulate.
+
+The effect mostly interesting with regard to the different means is their
+ effect on; consistency in lookup, lookup latency, network throughput per node
+ and CPU use (in case it increases the computational work of nodes significantly).
+
+\paragraph{Dynamic Table Settings}
+The \emph{stabilization} protocols developed for Accord should be possible to
+ simulate and test further to be able to choose optimal settings for any size
+ DHT. This protocol could also be adapted to find optimal settings \emph{not}
+ related to routing tables and their sizes. In the case for tree geometry
+ DHTs, it must be developed a new scale estimation protocol, which can be used
+ for similar purposes.
