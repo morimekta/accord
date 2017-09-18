@@ -1,6 +1,6 @@
 package net.morimekta.util.index;
 
-import net.iharder.xmlizable.Base64;
+import net.morimekta.util.Base64;
 import net.morimekta.util.std.STD;
 
 /**

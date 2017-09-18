@@ -85,77 +85,77 @@ public class AccordNode {
     /**
      * 
      * @param logging 
-     * @see net.morimekta.util.std.Log#setLoggingLevel(net.morimekta.util.std.Log.Level)
+     * @see main.java.net.morimekta.util.std.Log#setLoggingLevel(main.java.net.morimekta.util.std.Log.Level)
      */
     public void setLoggingLevel(Level logging) {
         log.setLoggingLevel(logging);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.util.std.Log#setVerboseLevel(net.morimekta.util.std.Log.Level)
+     * @see main.java.net.morimekta.util.std.Log#setVerboseLevel(main.java.net.morimekta.util.std.Log.Level)
      */
     public void setVerboseLevel(Level verbose) {
         log.setVerboseLevel(verbose);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Lookup#lookup(net.morimekta.util.index.Index)
+     * @see main.java.net.morimekta.accord.Lookup#lookup(main.java.net.morimekta.util.index.Index)
      */
     public Location lookup(Index idx) throws SocketTimeoutException, IllegalArgumentException {
         return lookup.lookup(idx);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Lookup#lookup(net.morimekta.util.index.Index, java.lang.String)
+     * @see main.java.net.morimekta.accord.Lookup#lookup(main.java.net.morimekta.util.index.Index, java.lang.String)
      */
     public Location lookup(Index idx, String opts) throws IllegalArgumentException, SocketTimeoutException {
         return lookup.lookup(idx, opts);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Lookup#lookup(net.morimekta.util.index.Index, java.lang.String, net.morimekta.net.Location)
+     * @see main.java.net.morimekta.accord.Lookup#lookup(main.java.net.morimekta.util.index.Index, java.lang.String, main.java.net.morimekta.main.java.net.Location)
      */
     public Location lookup(Index idx, String opts, Location ask) throws IllegalArgumentException, SocketTimeoutException {
         return lookup.lookup(idx, opts, ask);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Lookup#lookup_table(net.morimekta.net.Location, java.lang.String, java.lang.String)
+     * @see main.java.net.morimekta.accord.Lookup#lookup_table(main.java.net.morimekta.main.java.net.Location, java.lang.String, java.lang.String)
      */
     public Location lookup_table(Location ask, String tabref, String opts) throws SocketTimeoutException, IllegalArgumentException {
         return lookup.lookup_table(ask, tabref, opts);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Lookup#lookup_tables(net.morimekta.net.Location, java.lang.String, java.lang.String)
+     * @see main.java.net.morimekta.accord.Lookup#lookup_tables(main.java.net.morimekta.main.java.net.Location, java.lang.String, java.lang.String)
      */
     public LinkedList<QueryResult> lookup_tables(Location ask, String queryline, String options) throws SocketTimeoutException, IllegalArgumentException {
         return lookup.lookup_tables(ask, queryline, options);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Membership#connect(net.morimekta.net.Location)
+     * @see main.java.net.morimekta.accord.Membership#connect(main.java.net.morimekta.main.java.net.Location)
      */
     public boolean connect(Location to) {
         return membership.connect(to);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Membership#disconnect()
+     * @see main.java.net.morimekta.accord.Membership#disconnect()
      */
     public boolean disconnect() {
         return membership.disconnect();
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#freeTicket(int)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#freeTicket(int)
      */
     public synchronized boolean freeTicket(int ticket) {
         return socket.freeTicket(ticket);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#freeTickets()
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#freeTickets()
      */
     public synchronized int freeTickets() {
         return socket.freeTickets();
@@ -165,126 +165,126 @@ public class AccordNode {
      * Gets the Location to the local node.
      * 
      * @return Location to the local node.
-     * @see net.morimekta.net.MessageSocket#getLocation()
+     * @see main.java.net.morimekta.net.MessageSocket#getLocation()
      */
     public Location getLocation() {
         return socket.getLocation();
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#getMaxPacketSize()
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#getMaxPacketSize()
      */
     public int getMaxPacketSize() {
         return socket.getMaxPacketSize();
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#getMessageTimeout()
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#getMessageTimeout()
      */
     public int getMessageTimeout() {
         return socket.getMessageTimeout();
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#getService(java.lang.String)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#getService(java.lang.String)
      */
     public synchronized MessageService getService(String name) {
         return socket.getService(name);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#ping(net.morimekta.net.Location, long, int)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#ping(main.java.net.morimekta.main.java.net.Location, long, int)
      */
     public long ping(Location to, long timeout, int tries) {
         return socket.ping(to, timeout, tries);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#receive(int)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#receive(int)
      */
     public Message receive(int _ticket) throws SocketTimeoutException {
         return socket.receive(_ticket);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#receive(int, long)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#receive(int, long)
      */
     public Message receive(int ticket, long timeout) throws SocketTimeoutException {
         return socket.receive(ticket, timeout);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#register(net.morimekta.net.MessageService)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#register(main.java.net.morimekta.main.java.net.MessageService)
      */
     public synchronized boolean register(MessageService service) {
         return socket.register(service);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#requestTicket()
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#requestTicket()
      */
     public synchronized int requestTicket() throws IndexOutOfBoundsException {
         return socket.requestTicket();
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#send(net.morimekta.net.Location, net.morimekta.net.Message)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#send(main.java.net.morimekta.main.java.net.Location, main.java.net.morimekta.main.java.net.Message)
      */
     public boolean send(Location to, Message msg) {
         return socket.send(to, msg);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#setMaxPacketSize(int)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#setMaxPacketSize(int)
      */
     public void setMaxPacketSize(int _max_packet_size) {
         socket.setMaxPacketSize(_max_packet_size);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#setMessageTimeout(int)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#setMessageTimeout(int)
      */
     public void setMessageTimeout(int to) {
         socket.setMessageTimeout(to);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.net.MessageSocket#unregister(java.lang.String)
+     * @see main.java.net.morimekta.main.java.net.MessageSocket#unregister(java.lang.String)
      */
     public synchronized MessageService unregister(String name) {
         return socket.unregister(name);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.Stabilizer#is_stable()
+     * @see main.java.net.morimekta.accord.Stabilizer#is_stable()
      */
     public boolean is_stable() {
         return stabilizer.is_stable();
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.tables.LookupTable#contains(net.morimekta.net.Location)
+     * @see main.java.net.morimekta.accord.tables.LookupTable#contains(main.java.net.morimekta.main.java.net.Location)
      */
     public boolean contains(Location host) {
         return table.contains(host);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.tables.LookupTable#getLocation(net.morimekta.net.Location)
+     * @see main.java.net.morimekta.accord.tables.LookupTable#getLocation(main.java.net.morimekta.main.java.net.Location)
      */
     public Location getLocation(Location hl) {
         return table.getLocation(hl);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.tables.LookupTable#owner_of(net.morimekta.util.index.Index)
+     * @see main.java.net.morimekta.accord.tables.LookupTable#owner_of(main.java.net.morimekta.util.index.Index)
      */
     public Location owner_of(Index index) {
         return table.owner_of(index);
     }
 
     /* (non-Javadoc)
-     * @see net.morimekta.accord.tables.LookupTable#table_at(java.lang.String)
+     * @see main.java.net.morimekta.accord.tables.LookupTable#table_at(java.lang.String)
      */
     public Location table_at(String table_idx) {
         return table.table_at(table_idx);

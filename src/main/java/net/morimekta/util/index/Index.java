@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import net.iharder.xmlizable.Base64;
+import net.morimekta.util.Base64;
 import net.morimekta.util.std.STD;
 
 
@@ -192,7 +192,7 @@ public final class Index implements Comparable, Serializable {
      *   The byte64 encoded String.
      */
     public final String  toBase64String(){
-        return Base64.encodeBytes(getBytes());
+        return Base64.encodeToString(getBytes());
     }
     
     /**
