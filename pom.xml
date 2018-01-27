@@ -65,8 +65,8 @@
         <!-- library versions -->
         <slf4j.version>1.7.25</slf4j.version>
         <guava.version>23.0</guava.version>
-        <morimekta_utils.version>2.0.0</morimekta_utils.version>
-        <providence.version>0.5.3</providence.version>
+        <morimekta_utils.version>2.3.2</morimekta_utils.version>
+        <providence.version>0.7.2</providence.version>
     </properties>
 
     <dependencyManagement>
